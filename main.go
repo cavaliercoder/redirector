@@ -40,6 +40,10 @@ func main() {
 					Name:  "dest,d",
 					Usage: "URL to redirect to",
 				},
+				cli.BoolFlag{
+					Name:  "permenant,p",
+					Usage: "Redirect is permanent (301)",
+				},
 			},
 		},
 		{
@@ -97,6 +101,7 @@ func AddMappingAction(c *cli.Context) error {
 	m := &Mapping{
 		Key:         c.String("key"),
 		Destination: c.String("dest"),
+		Permanent:   c.Bool("permenant"),
 	}
 
 	if m.Key == "" {
