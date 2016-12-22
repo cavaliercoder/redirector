@@ -10,6 +10,10 @@ var (
 	MappingNotFoundError = fmt.Errorf("Mapping not found")
 )
 
+var (
+	MAPPINGS_BUCKET = []byte("mappings")
+)
+
 type Database struct {
 	bdb *bolt.DB
 }
@@ -25,8 +29,8 @@ func OpenDatabase(cfg *Config) (*Database, error) {
 	}
 
 	bdb.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucket([]byte("mappings"))
-		if err != nil && err != bolt.ErrBucketExists {
+		_, err := tx.CreateBucketIfNotExists([]byte("mappings"))
+		if err != nil {
 			return err
 		}
 
@@ -48,22 +52,26 @@ func (db *Database) Stats() interface{} {
 
 func (db *Database) AddMapping(m *Mapping) error {
 	return db.bdb.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("mappings"))
-		return b.Put([]byte(m.Key), []byte(m.Destination))
+		b, err := MarshallBinary(m)
+		if err != nil {
+			return err
+		}
+
+		return tx.Bucket(MAPPINGS_BUCKET).Put([]byte(m.Key), b)
 	})
 }
 
 func (db *Database) GetMapping(key string) (*Mapping, error) {
 	var m *Mapping = nil
 	if err := db.bdb.View(func(tx *bolt.Tx) error {
-		v := tx.Bucket([]byte("mappings")).Get([]byte(key))
-		if len(v) == 0 {
+		b := tx.Bucket(MAPPINGS_BUCKET).Get([]byte(key))
+		if b == nil {
 			return MappingNotFoundError
 		}
 
-		m = &Mapping{
-			Key:         key,
-			Destination: string(v),
+		m = &Mapping{}
+		if err := UnmarshallBinary(b, m); err != nil {
+			return err
 		}
 
 		return nil

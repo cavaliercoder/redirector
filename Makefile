@@ -3,6 +3,7 @@ PACKAGE = github.com/cavaliercoder/redirector
 redirector_SOURCES = \
 	config.go \
 	database.go \
+	gob.go \
 	keybuilder.go \
 	logger.go \
 	main.go \
