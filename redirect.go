@@ -16,38 +16,34 @@ const (
 </html>`
 )
 
-type RedirectHandler struct {
-	Runtime *Runtime
-}
-
-func (c *RedirectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	key, err := c.Runtime.Config.KeyBuilder.Parse(r)
-	if err != nil {
-		panic(err)
-	}
-
-	m, err := c.Runtime.Database.GetMapping(key)
-	if err != nil {
-		if err == MappingNotFoundError {
-			err = NewHTTPError(http.StatusNotFound, err)
-			panic(err)
-		} else {
+func Redirecthandler(rt *Runtime) http.Handler {
+	return WrapHandler(rt, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		key, err := rt.Config.KeyBuilder.Parse(r)
+		if err != nil {
 			panic(err)
 		}
-	}
 
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Header().Set("Location", m.Destination)
-	w.WriteHeader(http.StatusTemporaryRedirect)
-	fmt.Fprintf(w, REDIRECT_BODY)
+		m, err := rt.Database.GetMapping(key)
+		if err != nil {
+			if err == MappingNotFoundError {
+				err = NewHTTPError(http.StatusNotFound, err)
+				panic(err)
+			} else {
+				panic(err)
+			}
+		}
+
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Location", m.Destination)
+		w.WriteHeader(http.StatusTemporaryRedirect)
+		fmt.Fprintf(w, REDIRECT_BODY)
+	}))
 }
 
 func serve(rt *Runtime) error {
-	srv := &RedirectHandler{rt}
-
 	s := &http.Server{
 		Addr:    rt.Config.ListenAddr,
-		Handler: WrapHandler(rt, srv),
+		Handler: Redirecthandler(rt),
 	}
 
 	rt.Logger.Printf("Listening for redirect requests on %v", rt.Config.ListenAddr)

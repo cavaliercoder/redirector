@@ -2,93 +2,63 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"time"
+	"strings"
 )
 
-type ManagementHandler struct {
+type mgmtHandler struct {
 	Runtime *Runtime
 }
 
-func (c *ManagementHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	start := time.Now()
-	logger := c.Runtime.Logger
-	status := http.StatusInternalServerError
+func ManagementHandler(rt *Runtime) http.Handler {
+	return WrapHandler(rt, &mgmtHandler{rt})
+}
 
-	defer func() {
-		if r.Body != nil {
-			r.Body.Close()
+func (c *mgmtHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/stats/" {
+		if r.Method != "GET" {
+			panic(NewHTTPError(http.StatusMethodNotAllowed, nil))
 		}
 
-		duration := time.Since(start)
-		/*
-		 * if err := recover(); err != nil {
-		 *    logger.Printf("%v", err)
-		 * }
-		 */
+		c.getStatsHandler(w, r)
+		return
+	}
 
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.WriteHeader(status)
-		fmt.Fprintf(w, "%d %s\n", status, http.StatusText(status))
-
-		logger.Printf("%s %s %d %v\n", r.Method, r.URL.Path, status, duration)
-	}()
-
-	switch r.URL.Path {
-	case "/stats/":
-		if r.Method == "GET" {
-			status = c.getStatsHandler(w, r)
-		} else {
-			status = http.StatusMethodNotAllowed
-		}
-
-	case "/mappings/":
+	if strings.HasPrefix(r.URL.Path, "/mappings/") {
 		switch r.Method {
 		case "POST":
-			status = c.postMappingHandler(w, r)
+			c.postMappingHandler(w, r)
+			return
 
 		case "GET":
-			status = c.getMappingsHandler(w, r)
+			c.getMappingsHandler(w, r)
+			return
 
 		default:
-			status = http.StatusMethodNotAllowed
+			panic(NewHTTPError(http.StatusMethodNotAllowed, nil))
 		}
-
-	default:
-		status = http.StatusNotFound
 	}
+
+	panic(NewHTTPError(http.StatusNotFound, nil))
 }
 
-func (c *ManagementHandler) JSON(w http.ResponseWriter, r *http.Request, v interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	encoder := json.NewEncoder(w)
-	if err := encoder.Encode(v); err != nil {
-		panic(err)
-	}
-}
-
-func (c *ManagementHandler) getStatsHandler(w http.ResponseWriter, r *http.Request) int {
+func (c *mgmtHandler) getStatsHandler(w http.ResponseWriter, r *http.Request) {
 	stats := c.Runtime.Database.Stats()
-	c.JSON(w, r, stats)
-
-	return http.StatusOK
+	JSON(w, r, stats)
 }
 
-func (c *ManagementHandler) getMappingsHandler(w http.ResponseWriter, r *http.Request) int {
+func (c *mgmtHandler) getMappingsHandler(w http.ResponseWriter, r *http.Request) {
 	mappings, err := c.Runtime.Database.GetMappings()
 	if err != nil {
 		panic(err)
 	}
 
-	c.JSON(w, r, mappings)
-	return http.StatusOK
+	JSON(w, r, mappings)
 }
 
-func (c *ManagementHandler) postMappingHandler(w http.ResponseWriter, r *http.Request) int {
+func (c *mgmtHandler) postMappingHandler(w http.ResponseWriter, r *http.Request) {
 	if m := r.Header.Get("Content-Type"); m != "application/json" {
-		return http.StatusBadRequest
+		panic(NewHTTPError(http.StatusBadRequest, nil))
 	}
 
 	m := &Mapping{}
@@ -100,16 +70,12 @@ func (c *ManagementHandler) postMappingHandler(w http.ResponseWriter, r *http.Re
 	if err := c.Runtime.Database.AddMapping(m); err != nil {
 		panic(err)
 	}
-
-	return http.StatusCreated
 }
 
 func serveManager(rt *Runtime) error {
-	srv := &ManagementHandler{rt}
-
 	s := &http.Server{
 		Addr:    rt.Config.MgmtAddr,
-		Handler: srv,
+		Handler: ManagementHandler(rt),
 	}
 
 	rt.Logger.Printf("Listening for management commands on %v", rt.Config.MgmtAddr)

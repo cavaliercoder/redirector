@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -43,4 +44,12 @@ func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	c.Handler.ServeHTTP(w, r)
+}
+
+func JSON(w http.ResponseWriter, r *http.Request, v interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	encoder := json.NewEncoder(w)
+	if err := encoder.Encode(v); err != nil {
+		panic(err)
+	}
 }
