@@ -71,6 +71,12 @@ func (db *Database) add(b, k []byte, v interface{}) error {
 	})
 }
 
+func (db *Database) delete(b, k []byte) error {
+	return db.bdb.Update(func(tx *bolt.Tx) error {
+		return tx.Bucket(b).Delete(k)
+	})
+}
+
 func (db *Database) AddMapping(m *Mapping) error {
 	return db.add(MAPPINGS_BUCKET, []byte(m.Key), m)
 }
@@ -103,4 +109,8 @@ func (db *Database) GetMappings() ([]*Mapping, error) {
 	}
 
 	return mappings, nil
+}
+
+func (db *Database) DeleteMapping(key string) error {
+	return db.delete(MAPPINGS_BUCKET, []byte(key))
 }

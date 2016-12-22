@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -32,6 +33,10 @@ func (c *mgmtHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		case "GET":
 			c.getMappingsHandler(w, r)
+			return
+
+		case "DELETE":
+			c.deleteMappingHandler(w, r)
 			return
 
 		default:
@@ -70,6 +75,27 @@ func (c *mgmtHandler) postMappingHandler(w http.ResponseWriter, r *http.Request)
 	if err := c.Runtime.Database.AddMapping(m); err != nil {
 		panic(err)
 	}
+
+	w.Header().Set("Location", fmt.Sprintf("/mappings/%v", m.Key))
+	w.WriteHeader(http.StatusCreated)
+}
+
+func (c *mgmtHandler) deleteMappingHandler(w http.ResponseWriter, r *http.Request) {
+	m := Mapping{}
+	fmt.Sscanf(r.URL.Path, "/mappings/%s", &m.Key)
+	if m.Key == "" {
+		panic(NewHTTPError(http.StatusMethodNotAllowed, nil))
+	}
+
+	if _, err := c.Runtime.Database.GetMapping(m.Key); err != nil {
+		panic(err)
+	}
+
+	if err := c.Runtime.Database.DeleteMapping(m.Key); err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func serveManager(rt *Runtime) error {

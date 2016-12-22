@@ -25,18 +25,17 @@ func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if err := recover(); err != nil {
+			status := http.StatusInternalServerError
 			if herr, ok := err.(*HTTPError); ok {
-				status := herr.StatusCode
-				if status == 0 {
-					status = http.StatusInternalServerError
+				if herr.StatusCode > 0 {
+					status = herr.StatusCode
 				}
-
-				w.WriteHeader(status)
-				fmt.Fprintf(w, "%d %s\n", status, http.StatusText(status))
-			} else {
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, "%d %s\n", http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			} else if err == MappingNotFoundError {
+				status = http.StatusNotFound
 			}
+
+			w.WriteHeader(status)
+			fmt.Fprintf(w, "%d %s\n", status, http.StatusText(status))
 		}
 
 		d := time.Since(start)

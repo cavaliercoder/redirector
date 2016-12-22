@@ -16,6 +16,24 @@ func NewManagementClient(cfg *Config) *ManagementClient {
 	return &ManagementClient{cfg}
 }
 
+func (c *ManagementClient) GetMappings() ([]Mapping, error) {
+	addr := fmt.Sprintf("http://%v/mappings/", c.Config.MgmtAddr)
+
+	resp, err := http.Get(addr)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	mappings := make([]Mapping, 0)
+	dec := json.NewDecoder(resp.Body)
+	if err := dec.Decode(&mappings); err != nil {
+		return nil, err
+	}
+
+	return mappings, nil
+}
+
 func (c *ManagementClient) AddMapping(m *Mapping) error {
 	addr := fmt.Sprintf("http://%v/mappings/", c.Config.MgmtAddr)
 
@@ -52,12 +70,6 @@ func (c *ManagementClient) RemoveMapping(m *Mapping) error {
 	}
 
 	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	_, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}

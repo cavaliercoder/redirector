@@ -74,6 +74,22 @@ func ServeAction(c *cli.Context) error {
 }
 
 func ListMappingsAction(c *cli.Context) error {
+	cfg, err := GetConfig()
+	if err != nil {
+		return err
+	}
+
+	client := NewManagementClient(cfg)
+	mappings, err := client.GetMappings()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("KEY, DESTINATION, PERMANENT\n")
+	for _, m := range mappings {
+		fmt.Printf("%v, %v, %v\n", m.Key, m.Destination, m.Permanent)
+	}
+
 	return nil
 }
 
