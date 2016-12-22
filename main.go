@@ -23,34 +23,28 @@ func main() {
 			Action: ServeAction,
 		},
 		{
-			Name:  "mapping",
-			Usage: "add/remove URL mappings",
-			Subcommands: []cli.Command{
-				{
-					Name:   "add",
-					Usage:  "add a mapping",
-					Action: AddMappingAction,
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "key,k",
-							Usage: "key that identifies this redirect",
-						},
-						cli.StringFlag{
-							Name:  "dest,d",
-							Usage: "URL to redirect to",
-						},
-					},
+			Name:   "add",
+			Usage:  "add a mapping",
+			Action: AddMappingAction,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "key,k",
+					Usage: "key that identifies this redirect",
 				},
-				{
-					Name:   "rm",
-					Usage:  "remove a mapping",
-					Action: RemoveMappingAction,
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "key,k",
-							Usage: "key that identifies this redirect",
-						},
-					},
+				cli.StringFlag{
+					Name:  "dest,d",
+					Usage: "URL to redirect to",
+				},
+			},
+		},
+		{
+			Name:   "rm",
+			Usage:  "remove a mapping",
+			Action: RemoveMappingAction,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "key,k",
+					Usage: "key that identifies this redirect",
 				},
 			},
 		},
