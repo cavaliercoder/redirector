@@ -49,33 +49,35 @@ func (db *Database) Close() error {
 func (db *Database) Stats() interface{} {
 	return db.bdb.Stats()
 }
+func (db *Database) get(b, k []byte, v interface{}) error {
+	return db.bdb.View(func(tx *bolt.Tx) error {
+		vb := tx.Bucket(b).Get(k)
+		if vb == nil {
+			return MappingNotFoundError
+		}
 
-func (db *Database) AddMapping(m *Mapping) error {
+		return UnmarshallBinary(vb, v)
+	})
+}
+
+func (db *Database) add(b, k []byte, v interface{}) error {
 	return db.bdb.Update(func(tx *bolt.Tx) error {
-		b, err := MarshallBinary(m)
+		vb, err := MarshallBinary(v)
 		if err != nil {
 			return err
 		}
 
-		return tx.Bucket(MAPPINGS_BUCKET).Put([]byte(m.Key), b)
+		return tx.Bucket(b).Put(k, vb)
 	})
 }
 
+func (db *Database) AddMapping(m *Mapping) error {
+	return db.add(MAPPINGS_BUCKET, []byte(m.Key), m)
+}
+
 func (db *Database) GetMapping(key string) (*Mapping, error) {
-	var m *Mapping = nil
-	if err := db.bdb.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket(MAPPINGS_BUCKET).Get([]byte(key))
-		if b == nil {
-			return MappingNotFoundError
-		}
-
-		m = &Mapping{}
-		if err := UnmarshallBinary(b, m); err != nil {
-			return err
-		}
-
-		return nil
-	}); err != nil {
+	m := &Mapping{}
+	if err := db.get(MAPPINGS_BUCKET, []byte(key), m); err != nil {
 		return nil, err
 	}
 
