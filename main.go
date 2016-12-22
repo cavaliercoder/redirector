@@ -23,6 +23,11 @@ func main() {
 			Action: ServeAction,
 		},
 		{
+			Name:   "ls",
+			Usage:  "list all mappings",
+			Action: ListMappingsAction,
+		},
+		{
 			Name:   "add",
 			Usage:  "add a mapping",
 			Action: AddMappingAction,
@@ -59,13 +64,17 @@ func ServeAction(c *cli.Context) error {
 		return err
 	}
 
-	defer rt.Database.Close()
+	defer rt.Close()
 
 	go func() {
 		serveManager(rt)
 	}()
 
 	return serve(rt)
+}
+
+func ListMappingsAction(c *cli.Context) error {
+	return nil
 }
 
 func AddMappingAction(c *cli.Context) error {

@@ -87,12 +87,13 @@ func (db *Database) GetMapping(key string) (*Mapping, error) {
 func (db *Database) GetMappings() ([]*Mapping, error) {
 	mappings := make([]*Mapping, 0)
 	if err := db.bdb.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("mappings"))
+		b := tx.Bucket(MAPPINGS_BUCKET)
 		return b.ForEach(func(k, v []byte) error {
-			m := &Mapping{
-				Key:         string(k),
-				Destination: string(v),
+			m := &Mapping{}
+			if err := UnmarshallBinary(v, m); err != nil {
+				return err
 			}
+
 			mappings = append(mappings, m)
 
 			return nil

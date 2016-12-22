@@ -4,14 +4,16 @@ redirector_SOURCES = \
 	config.go \
 	database.go \
 	gob.go \
+	handler.go \
+	httperror.go \
 	keybuilder.go \
 	logger.go \
 	main.go \
 	management.go \
 	management_client.go \
 	mapping.go \
-	runtime.go \
-	server.go
+	redirect.go \
+	runtime.go
 
 all: redirector
 

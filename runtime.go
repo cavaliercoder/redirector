@@ -32,3 +32,13 @@ func NewRuntime() (*Runtime, error) {
 		Database: db,
 	}, nil
 }
+
+func (rt *Runtime) Close() error {
+	if rt.Database != nil {
+		if err := rt.Database.Close(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
