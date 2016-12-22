@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -31,7 +30,7 @@ func RequestParamKeyBuilder(param string) KeyBuilder {
 	return KeyBuilderFunc(func(r *http.Request) (string, error) {
 		key := r.URL.Query().Get(param)
 		if key == "" {
-			return "", fmt.Errorf("Request parameter %v is not set", param)
+			return "", NewHTTPError(http.StatusNotFound, nil)
 		}
 
 		return key, nil
