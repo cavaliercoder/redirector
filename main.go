@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gopkg.in/urfave/cli.v1"
 	"os"
+	"text/tabwriter"
 )
 
 const (
@@ -89,10 +90,12 @@ func ListMappingsAction(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf("KEY, DESTINATION, PERMANENT\n")
+	w := tabwriter.NewWriter(os.Stdout, 0, 1, 3, ' ', 0)
+	fmt.Fprintln(w, "KEY\tDESTINATION\tPERMANENT")
 	for _, m := range mappings {
-		fmt.Printf("%v, %v, %v\n", m.Key, m.Destination, m.Permanent)
+		fmt.Fprintf(w, "%v\t%v\t%v\n", m.Key, m.Destination, m.Permanent)
 	}
+	w.Flush()
 
 	return nil
 }
@@ -122,7 +125,7 @@ func AddMappingAction(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf("OK\n")
+	fmt.Printf("Added %v\n", m)
 	return nil
 }
 
@@ -145,6 +148,6 @@ func RemoveMappingAction(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf("OK\n")
+	fmt.Printf("Removed %v\n", m.Key)
 	return nil
 }
