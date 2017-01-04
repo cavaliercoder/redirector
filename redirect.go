@@ -16,6 +16,28 @@ const (
 </html>`
 )
 
+// getMappingOrDefault returns the requested mapping or the mapping for the
+// default key or MappingNotFoundError if neither are found.
+func getMappingOrDefault(rt *Runtime, key string) (*Mapping, error) {
+	keys := []string{key}
+	if rt.Config.DefaultKey != "" {
+		keys = append(keys, rt.Config.DefaultKey)
+	}
+
+	for _, k := range keys {
+		m, err := rt.Database.GetMapping(k)
+		if err == nil {
+			return m, nil
+		}
+
+		if err != MappingNotFoundError {
+			panic(err)
+		}
+	}
+
+	return nil, NewHTTPError(http.StatusNotFound, MappingNotFoundError)
+}
+
 func RedirectHandler(rt *Runtime) http.Handler {
 	return WrapHandler(rt, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		key, err := rt.Config.KeyBuilder.Parse(r)
@@ -23,19 +45,19 @@ func RedirectHandler(rt *Runtime) http.Handler {
 			panic(err)
 		}
 
-		m, err := rt.Database.GetMapping(key)
+		m, err := getMappingOrDefault(rt, key)
 		if err != nil {
-			if err == MappingNotFoundError {
-				err = NewHTTPError(http.StatusNotFound, err)
-				panic(err)
-			} else {
-				panic(err)
-			}
+			panic(err)
 		}
 
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Header().Set("Location", m.Destination)
-		w.WriteHeader(http.StatusTemporaryRedirect)
+		if m.Permanent {
+			w.WriteHeader(http.StatusMovedPermanently)
+		} else {
+			w.WriteHeader(http.StatusTemporaryRedirect)
+		}
+
 		fmt.Fprintf(w, REDIRECT_BODY)
 	}))
 }

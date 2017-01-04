@@ -35,7 +35,13 @@ func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 			} else if err == MappingNotFoundError {
 				status = http.StatusNotFound
+			} else {
+				if c.Runtime.Config.ExitOnError {
+					panic(err)
+				}
 			}
+
+			c.Runtime.Logger.Printf("Error: %v", err)
 
 			w.WriteHeader(status)
 			fmt.Fprintf(w, "%d %s\n", status, http.StatusText(status))

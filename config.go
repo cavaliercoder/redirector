@@ -25,6 +25,9 @@ type Config struct {
 	// Indicates if configuration has already been loaded
 	Initialized bool `json:"-"`
 
+	// Bypass panic handler for testing
+	ExitOnError bool `json:"-"`
+
 	// File path of the BoltDB database
 	DatabasePath string `json:"databasePath"`
 
@@ -42,6 +45,10 @@ type Config struct {
 
 	// An instance of a KeyBuilder to use when mapping URLs
 	KeyBuilder KeyBuilder `json:"-"`
+
+	// Use this key if the requested key does not exist (instead of returning
+	// 404)
+	DefaultKey string `json:"defaultKey"`
 }
 
 // LoadConfig reads configuration from the given file path
