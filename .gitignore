@@ -1,2 +1,4 @@
-redirector
 *.db
+*.json
+*.sh
+redirector
