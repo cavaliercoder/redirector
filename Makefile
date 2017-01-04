@@ -21,7 +21,10 @@ all: redirector
 redirector: $(redirector_SOURCES)
 	go build -x -o redirector $(redirector_SOURCES)
 
+check:
+	go test -v -cover
+
 clean:
 	go clean -x -i $(PACKAGE)
 
-.PHONY: all clean
+.PHONY: all check clean
