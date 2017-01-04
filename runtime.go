@@ -8,7 +8,7 @@ import (
 type Runtime struct {
 	Config   *Config
 	Logger   *log.Logger
-	Database *Database
+	Database Database
 }
 
 func NewRuntime() (*Runtime, error) {
@@ -22,7 +22,7 @@ func NewRuntime() (*Runtime, error) {
 		return nil, err
 	}
 
-	db, err := OpenDatabase(cfg)
+	db, err := OpenBoltDatabase(cfg)
 	if err != nil {
 		return nil, err
 	}

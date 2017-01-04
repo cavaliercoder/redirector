@@ -1,6 +1,7 @@
 PACKAGE = github.com/cavaliercoder/redirector
 
 redirector_SOURCES = \
+	bolt.go \
 	config.go \
 	database.go \
 	gob.go \
