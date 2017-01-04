@@ -4,6 +4,7 @@ import (
 	"log"
 )
 
+// Runtime contains globals for common runtime utilities.
 type Runtime struct {
 	Config   *Config
 	Logger   *log.Logger

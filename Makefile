@@ -22,3 +22,5 @@ redirector: $(redirector_SOURCES)
 
 clean:
 	go clean -x -i $(PACKAGE)
+
+.PHONY: all clean

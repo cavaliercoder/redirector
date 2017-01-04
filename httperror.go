@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// HTTPError wraps a regular error and provides HTTP Status Code information.
 type HTTPError struct {
 	Err        error
 	StatusCode int

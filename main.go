@@ -42,7 +42,7 @@ func main() {
 					Usage: "URL to redirect to",
 				},
 				cli.BoolFlag{
-					Name:  "permenant,p",
+					Name:  "permanent,p",
 					Usage: "Redirect is permanent (301)",
 				},
 			},

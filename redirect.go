@@ -16,7 +16,7 @@ const (
 </html>`
 )
 
-func Redirecthandler(rt *Runtime) http.Handler {
+func RedirectHandler(rt *Runtime) http.Handler {
 	return WrapHandler(rt, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		key, err := rt.Config.KeyBuilder.Parse(r)
 		if err != nil {
@@ -43,7 +43,7 @@ func Redirecthandler(rt *Runtime) http.Handler {
 func serve(rt *Runtime) error {
 	s := &http.Server{
 		Addr:    rt.Config.ListenAddr,
-		Handler: Redirecthandler(rt),
+		Handler: RedirectHandler(rt),
 	}
 
 	rt.Logger.Printf("Listening for redirect requests on %v", rt.Config.ListenAddr)

@@ -7,11 +7,14 @@ import (
 	"time"
 )
 
+// defaultHandler is a http.Handler that provides runtime configuration, request
+// logging and panic handling.
 type defaultHandler struct {
 	Runtime *Runtime
 	Handler http.Handler
 }
 
+// WrapHandler returns a defaultHandler that wraps the given http.Handler.
 func WrapHandler(rt *Runtime, h http.Handler) http.Handler {
 	return &defaultHandler{
 		Runtime: rt,
@@ -45,6 +48,8 @@ func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.Handler.ServeHTTP(w, r)
 }
 
+// JSON encodes the given interface{} to JSON and writes the output to the given
+// http.ResponseWriter.
 func JSON(w http.ResponseWriter, r *http.Request, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)

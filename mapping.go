@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// A Mapping maps a request key to a destination URL.
 type Mapping struct {
 	Key         string `json:"key"`
 	Destination string `json:"dest"`
