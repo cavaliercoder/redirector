@@ -18,7 +18,19 @@ func testHttpClient() *http.Client {
 }
 
 func testRedirectServer(fn func(*Runtime, *httptest.Server)) {
+	mappings := []Mapping{
+		{"default", "/okay", true},
+		{"/test1", "/okay-test1", true},
+		{"/test2", "/okay-test2", true},
+	}
+
 	tmpBoltDB(func(db Database) {
+		for _, m := range mappings {
+			if err := db.AddMapping(&m); err != nil {
+				panic(err)
+			}
+		}
+
 		rt := &Runtime{
 			Config:   &Config{},
 			Database: db,
@@ -34,19 +46,11 @@ func testRedirectServer(fn func(*Runtime, *httptest.Server)) {
 
 func TestDefaultKey(t *testing.T) {
 	testRedirectServer(func(rt *Runtime, ts *httptest.Server) {
-		//rt.Config.DefaultKey = "default"
+		defaultDest := "/okay"
+		rt.Config.DefaultKey = "default"
 		rt.Config.KeyBuilder = RequestURIPathKeyBuilder()
 
-		// add default mapping
-		m := &Mapping{
-			Key:         "default",
-			Destination: "/okay",
-			Permanent:   true,
-		}
-		if err := rt.Database.AddMapping(m); err != nil {
-			panic(err)
-		}
-
+		// test non-existant mapping
 		res, err := testHttpClient().Get(ts.URL + "/does/not/exist")
 		if err != nil {
 			panic(err)
@@ -57,8 +61,23 @@ func TestDefaultKey(t *testing.T) {
 		}
 
 		loc := res.Header.Get("Location")
-		if loc != m.Destination {
-			t.Fatalf("Expected default mapping to '%v', got '%v'", m.Destination, loc)
+		if loc != defaultDest {
+			t.Fatalf("Expected default mapping to '%v', got '%v'", defaultDest, loc)
+		}
+
+		// test existing mapping still works
+		res, err = testHttpClient().Get(ts.URL + "/test1")
+		if err != nil {
+			panic(err)
+		}
+
+		if res.StatusCode != http.StatusMovedPermanently {
+			t.Fatalf("Expected real mapping with status %v, got %v", http.StatusMovedPermanently, res.StatusCode)
+		}
+
+		loc = res.Header.Get("Location")
+		if loc != "/okay-test1" {
+			t.Fatalf("Expected real mapping to '%v', got '%v'", "/okay-test1", loc)
 		}
 	})
 }
