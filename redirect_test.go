@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"path/filepath"
 	"testing"
 )
 
@@ -18,14 +20,8 @@ func testHttpClient() *http.Client {
 }
 
 func testRedirectServer(fn func(*Runtime, *httptest.Server)) {
-	mappings := []Mapping{
-		{"default", "/okay", true},
-		{"/test1", "/okay-test1", true},
-		{"/test2", "/okay-test2", true},
-	}
-
 	tmpBoltDB(func(db Database) {
-		for _, m := range mappings {
+		for _, m := range boltdbMappings {
 			if err := db.AddMapping(&m); err != nil {
 				panic(err)
 			}
@@ -66,18 +62,18 @@ func TestDefaultKey(t *testing.T) {
 		}
 
 		// test existing mapping still works
-		res, err = testHttpClient().Get(ts.URL + "/test1")
-		if err != nil {
-			panic(err)
-		}
+		for _, m := range boltdbMappings {
+			u, _ := url.Parse(ts.URL)
+			u.Path = filepath.Join(u.Path, m.Key)
+			res, err = testHttpClient().Get(u.String())
+			if err != nil {
+				panic(err)
+			}
 
-		if res.StatusCode != http.StatusMovedPermanently {
-			t.Fatalf("Expected real mapping with status %v, got %v", http.StatusMovedPermanently, res.StatusCode)
-		}
-
-		loc = res.Header.Get("Location")
-		if loc != "/okay-test1" {
-			t.Fatalf("Expected real mapping to '%v', got '%v'", "/okay-test1", loc)
+			loc = res.Header.Get("Location")
+			if loc != m.Destination {
+				t.Fatalf("Bad mapping destination '%v', expected '%v'", loc, m.Destination)
+			}
 		}
 	})
 }

@@ -29,12 +29,12 @@ func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
 			status := http.StatusInternalServerError
-			if herr, ok := err.(*HTTPError); ok {
+			if err == MappingNotFoundError {
+				status = http.StatusNotFound
+			} else if herr, ok := err.(*HTTPError); ok {
 				if herr.StatusCode > 0 {
 					status = herr.StatusCode
 				}
-			} else if err == MappingNotFoundError {
-				status = http.StatusNotFound
 			} else {
 				if c.Runtime.Config.ExitOnError {
 					panic(err)

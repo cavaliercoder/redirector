@@ -7,6 +7,7 @@ import (
 )
 
 var boltdbMappings = []Mapping{
+	{"default", "/okay", true},
 	{"/test1", "/yes!", true},
 	{"/test2", "/nope", false},
 }
