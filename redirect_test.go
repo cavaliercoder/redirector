@@ -28,7 +28,10 @@ func testRedirectServer(fn func(*Runtime, *httptest.Server)) {
 		}
 
 		rt := &Runtime{
-			Config:   &Config{},
+			Config: &Config{
+				ExitOnError: true,
+				KeyBuilder:  RequestURIPathKeyBuilder(),
+			},
 			Database: db,
 			Logger:   log.New(ioutil.Discard, "", 0),
 		}
@@ -37,6 +40,19 @@ func testRedirectServer(fn func(*Runtime, *httptest.Server)) {
 		defer ts.Close()
 
 		fn(rt, ts)
+	})
+}
+
+func TestMissingKey(t *testing.T) {
+	testRedirectServer(func(rt *Runtime, ts *httptest.Server) {
+		res, err := testHttpClient().Get(ts.URL + "/does/not/exist")
+		if err != nil {
+			panic(err)
+		}
+
+		if res.StatusCode != http.StatusNotFound {
+			t.Fatalf("Expected missing mapping with status %v, got %v", http.StatusNotFound, res.StatusCode)
+		}
 	})
 }
 

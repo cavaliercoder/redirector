@@ -9,6 +9,8 @@ var (
 	MAPPINGS_BUCKET = []byte("mappings")
 )
 
+// BoltDatabase implements Database to enable storage of URL mappings in a
+// memory-mapped BoltDB data store.
 type BoltDatabase struct {
 	bdb *bolt.DB
 }

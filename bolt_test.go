@@ -8,8 +8,8 @@ import (
 
 var boltdbMappings = []Mapping{
 	{"default", "/okay", true},
-	{"/test1", "/yes!", true},
-	{"/test2", "/nope", false},
+	{"/permanent", "/okay", true},
+	{"/temporary", "/okay", false},
 }
 
 func tmpBoltDB(fn func(Database)) {
@@ -43,6 +43,7 @@ func tmpBoltDB(fn func(Database)) {
 
 	fn(db)
 }
+
 func TestBoltDBMappings(t *testing.T) {
 	tmpBoltDB(func(db Database) {
 		// add mappings
