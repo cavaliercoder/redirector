@@ -16,6 +16,7 @@ SOURCES = \
 	management_client.go \
 	mapping.go \
 	redirect.go \
+	redis.go \
 	runtime.go \
 	template.go
 
@@ -35,6 +36,7 @@ $(PACKAGE): $(SOURCES)
 		$(SOURCES)
 
 check:
+	# for redis: $ docker run -d -p 6379:6379 redis
 	go test -v -cover
 
 clean:
@@ -44,8 +46,9 @@ install:
 	go install $(PACKAGE_PATH)
 
 get-deps:
-	go get -v github.com/boltdb/bolt
 	go get -v gopkg.in/urfave/cli.v1
+	go get -v github.com/boltdb/bolt
+	go get -v github.com/garyburd/redigo/redis
 
 dist: $(SOURCES) $(EXTRA_DIST)
 	rm -rvf $(PACKAGE)-$(PACKAGE_VERSION)/ || :

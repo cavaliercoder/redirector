@@ -21,7 +21,7 @@ func testHttpClient() *http.Client {
 
 func testRedirectServer(fn func(*Runtime, *httptest.Server)) {
 	tmpBoltDB(func(db Database) {
-		for _, m := range boltdbMappings {
+		for _, m := range testMappings {
 			if err := db.AddMapping(&m); err != nil {
 				panic(err)
 			}
@@ -118,7 +118,7 @@ func TestDefaultKey(t *testing.T) {
 		}
 
 		// test existing mapping still works
-		for _, m := range boltdbMappings {
+		for _, m := range testMappings {
 			u, _ := url.Parse(ts.URL)
 			u.Path = filepath.Join(u.Path, m.Key)
 			res, err = testHttpClient().Get(u.String())

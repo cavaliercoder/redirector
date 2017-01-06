@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -11,6 +12,8 @@ type Runtime struct {
 	AccessLogger *log.Logger
 	Database     Database
 }
+
+var UnsupportedDatabaseDriverError = fmt.Errorf("Unsupported database driver")
 
 func NewRuntime() (*Runtime, error) {
 	cfg, err := GetConfig()
@@ -32,11 +35,22 @@ func NewRuntime() (*Runtime, error) {
 		}
 	}
 
-	db, err := OpenBoltDatabase(cfg)
+	var db Database
+	switch cfg.DatabaseDriver {
+	case "bolt":
+		db, err = OpenBoltDatabase(cfg)
+
+	case "redis":
+		db, err = OpenRedisDatabase(cfg)
+	default:
+		return nil, UnsupportedDatabaseDriverError
+	}
+
 	if err != nil {
 		return nil, err
 	}
-	logger.Printf("Using Bolt database: %v", cfg.DatabasePath)
+
+	logger.Printf("Connected to database %v://%v", cfg.DatabaseDriver, cfg.DatabasePath)
 	logger.Printf("Total mappings: %v", db.Count())
 
 	return &Runtime{

@@ -6,12 +6,6 @@ import (
 	"testing"
 )
 
-var boltdbMappings = []Mapping{
-	{"default", "/okay", false},
-	{"/permanent", "/okay", true},
-	{"/temporary", "/okay", false},
-}
-
 func tmpBoltDB(fn func(Database)) {
 	// create temp file
 	dbpath := func() string {
@@ -44,48 +38,8 @@ func tmpBoltDB(fn func(Database)) {
 	fn(db)
 }
 
-func TestBoltDBMappings(t *testing.T) {
+func TestBoltDB(t *testing.T) {
 	tmpBoltDB(func(db Database) {
-		// add mappings
-		for _, m := range boltdbMappings {
-			if err := db.AddMapping(&m); err != nil {
-				panic(err)
-			}
-		}
-
-		// test mappings
-		for _, m := range boltdbMappings {
-			if v, err := db.GetMapping(m.Key); err != nil {
-				panic(err)
-			} else {
-				if v.Destination != m.Destination {
-					t.Errorf("Bad mapping destination: '%v', expected '%v'", v.Destination, m.Destination)
-				}
-
-				if v.Permanent != m.Permanent {
-					t.Errorf("Bad mapping permanence: '%v', expected '%v'", v.Permanent, m.Permanent)
-				}
-			}
-		}
-
-		// test all
-		if v, err := db.GetMappings(); err != nil {
-			panic(err)
-		} else {
-			if len(v) != len(boltdbMappings) {
-				t.Errorf("Bad mapping count %v, expected %v", len(v), len(boltdbMappings))
-			}
-		}
-
-		// delete mappings
-		for _, m := range boltdbMappings {
-			if err := db.DeleteMapping(m.Key); err != nil {
-				panic(err)
-			}
-
-			if _, err := db.GetMapping(m.Key); err != MappingNotFoundError {
-				t.Errorf("Mapping was deleted but still exists in database")
-			}
-		}
+		testDB(t, db)
 	})
 }

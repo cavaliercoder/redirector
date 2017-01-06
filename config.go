@@ -11,6 +11,7 @@ import (
 var cfg *Config = &Config{
 	Path:           "",
 	Initialized:    false,
+	DatabaseDriver: "bolt",
 	DatabasePath:   "./redirector.db",
 	ListenAddr:     ":8080",
 	MgmtAddr:       "127.0.0.1:9321",
@@ -29,6 +30,9 @@ type Config struct {
 
 	// Bypass panic handler for testing
 	ExitOnError bool `json:"-"`
+
+	// Database driver
+	DatabaseDriver string `json:"database"`
 
 	// File path of the BoltDB database
 	DatabasePath string `json:"databasePath"`
