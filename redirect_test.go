@@ -56,9 +56,47 @@ func TestMissingKey(t *testing.T) {
 	})
 }
 
+func TestPermanentKey(t *testing.T) {
+	testRedirectServer(func(rt *Runtime, ts *httptest.Server) {
+		dest := "/okay"
+		res, err := testHttpClient().Get(ts.URL + "/permanent")
+		if err != nil {
+			panic(err)
+		}
+
+		if res.StatusCode != http.StatusPermanentRedirect {
+			t.Fatalf("Expected permanent mapping with status %v, got %v", http.StatusPermanentRedirect, res.StatusCode)
+		}
+
+		loc := res.Header.Get("Location")
+		if loc != dest {
+			t.Fatalf("Expected permanent mapping to '%v', got '%v'", dest, loc)
+		}
+	})
+}
+
+func TestTemporaryKey(t *testing.T) {
+	testRedirectServer(func(rt *Runtime, ts *httptest.Server) {
+		dest := "/okay"
+		res, err := testHttpClient().Get(ts.URL + "/temporary")
+		if err != nil {
+			panic(err)
+		}
+
+		if res.StatusCode != http.StatusTemporaryRedirect {
+			t.Fatalf("Expected temporary mapping with status %v, got %v", http.StatusTemporaryRedirect, res.StatusCode)
+		}
+
+		loc := res.Header.Get("Location")
+		if loc != dest {
+			t.Fatalf("Expected temporary mapping to '%v', got '%v'", dest, loc)
+		}
+	})
+}
+
 func TestDefaultKey(t *testing.T) {
 	testRedirectServer(func(rt *Runtime, ts *httptest.Server) {
-		defaultDest := "/okay"
+		dest := "/okay"
 		rt.Config.DefaultKey = "default"
 		rt.Config.KeyBuilder = RequestURIPathKeyBuilder()
 
@@ -68,13 +106,13 @@ func TestDefaultKey(t *testing.T) {
 			panic(err)
 		}
 
-		if res.StatusCode != http.StatusMovedPermanently {
-			t.Fatalf("Expected default mapping with status %v, got %v", http.StatusMovedPermanently, res.StatusCode)
+		if res.StatusCode != http.StatusTemporaryRedirect {
+			t.Fatalf("Expected default mapping with status %v, got %v", http.StatusTemporaryRedirect, res.StatusCode)
 		}
 
 		loc := res.Header.Get("Location")
-		if loc != defaultDest {
-			t.Fatalf("Expected default mapping to '%v', got '%v'", defaultDest, loc)
+		if loc != dest {
+			t.Fatalf("Expected default mapping to '%v', got '%v'", dest, loc)
 		}
 
 		// test existing mapping still works

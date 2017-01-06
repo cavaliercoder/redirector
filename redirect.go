@@ -53,7 +53,7 @@ func RedirectHandler(rt *Runtime) http.Handler {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Header().Set("Location", m.Destination)
 		if m.Permanent {
-			w.WriteHeader(http.StatusMovedPermanently)
+			w.WriteHeader(http.StatusPermanentRedirect)
 		} else {
 			w.WriteHeader(http.StatusTemporaryRedirect)
 		}
