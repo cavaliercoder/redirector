@@ -59,7 +59,7 @@ EOL
 # create systemd service
 cat > %{buildroot}%{_exec_prefix}/lib/systemd/system/%{name}.service <<EOL
 [Unit]
-Description=%{summary}
+Description=Simple HTTP redirect server
 After=network.target remote-fs.target nss-lookup.target
 
 [Service]
