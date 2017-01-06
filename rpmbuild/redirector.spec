@@ -66,6 +66,7 @@ After=network.target remote-fs.target nss-lookup.target
 
 [Service]
 Type=simple
+User=%{name}
 ExecStart=%{_bindir}/%{name} serve
 KillSignal=SIGQUIT
 TimeoutStopSec=5
