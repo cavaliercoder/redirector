@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 )
+
+var ParamNotFoundError = fmt.Errorf("Key parameter not found in request URI")
 
 // A KeyBuilder translates a client HTTP request into a URL mapping key that may
 // be used to lookup the destination URL of a redirect mapping.
@@ -42,7 +45,7 @@ func RequestParamKeyBuilder(param string) KeyBuilder {
 	return KeyBuilderFunc(func(r *http.Request) (string, error) {
 		key := r.URL.Query().Get(param)
 		if key == "" {
-			return "", NewHTTPError(http.StatusNotFound, nil)
+			return "", NewHTTPError(http.StatusNotFound, ParamNotFoundError)
 		}
 
 		return key, nil

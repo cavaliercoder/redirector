@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 )
 
 // singleton config instance
@@ -103,7 +104,6 @@ func GetConfig() (*Config, error) {
 
 func (c *Config) initialize() error {
 	// expand keybuilder
-	// TODO: add query param key builder
 	switch c.KeyBuilderName {
 	case "", "path":
 		c.KeyBuilder = RequestURIPathKeyBuilder()
@@ -112,8 +112,13 @@ func (c *Config) initialize() error {
 		c.KeyBuilder = RequestURIKeyBuilder()
 
 	default:
-		return fmt.Errorf("Unknown key builder: %v", c.KeyBuilderName)
+		if strings.HasPrefix(c.KeyBuilderName, "param:") {
+			c.KeyBuilder = RequestParamKeyBuilder(c.KeyBuilderName[6:])
+		} else {
+			return fmt.Errorf("Unknown key builder: %v", c.KeyBuilderName)
+		}
 	}
+
 	c.Initialized = true
 	return nil
 }
