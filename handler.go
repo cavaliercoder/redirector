@@ -48,11 +48,11 @@ func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(status)
 
 			if body, err := BodyForStatus(status); err != nil {
+				c.Runtime.Logger.Printf("Error getting body for status %v: %v", status, err)
 				fmt.Fprintf(w, "%d %s\n", status, http.StatusText(status))
 			} else {
 				fmt.Fprintf(w, body)
 			}
-
 		}
 
 		d := time.Since(start)
