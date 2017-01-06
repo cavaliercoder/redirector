@@ -54,9 +54,17 @@ dist: $(SOURCES) $(EXTRA_DIST)
 	tar -zcvf $(PACKAGE)-$(PACKAGE_VERSION).tar.gz $(PACKAGE)-$(PACKAGE_VERSION)/
 	rm -rvf $(PACKAGE)-$(PACKAGE_VERSION)/
 
+distclean:
+	rm -vf $(PACKAGE)-$(PACKAGE_VERSION).tar.gz
+
 rpm: dist
 	cp -v rpmbuild/$(PACKAGE).spec ~/rpmbuild/SPECS/$(PACKAGE).spec
 	cp -v $(PACKAGE)-$(PACKAGE_VERSION).tar.gz ~/rpmbuild/SOURCES/$(PACKAGE)-$(PACKAGE_VERSION).tar.gz 
 	rpmbuild -ba ~/rpmbuild/SPECS/$(PACKAGE).spec
+
+rpmclean:
+	rm -vf ~/rpmbuild/SPECS/$(PACKAGE).spec
+	rm -vf ~/rpmbuild/SOURCES/$(PACKAGE)-$(PACKAGE_VERSION).tar.gz
+	rm -vf ~/rpmbuild/RPMS/x86_64/redirector-*
 
 .PHONY: all check clean install get-deps dist rpm

@@ -58,6 +58,7 @@ cat > %{buildroot}%{_sysconfdir}/%{name}/%{name}.json <<EOL
 EOL
 
 # create systemd service
+# TODO: service should run as system account
 cat > %{buildroot}%{_exec_prefix}/lib/systemd/system/%{name}.service <<EOL
 [Unit]
 Description=Simple HTTP redirect server
