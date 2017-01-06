@@ -46,6 +46,18 @@ func (db *BoltDatabase) Close() error {
 func (db *BoltDatabase) Stats() interface{} {
 	return db.bdb.Stats()
 }
+
+func (db *BoltDatabase) Count() int {
+	count := 0
+	db.bdb.View(func(tx *bolt.Tx) error {
+		stats := tx.Bucket(MAPPINGS_BUCKET).Stats()
+		count = stats.KeyN
+		return nil
+	})
+
+	return count
+}
+
 func (db *BoltDatabase) get(b, k []byte, v interface{}) error {
 	return db.bdb.View(func(tx *bolt.Tx) error {
 		vb := tx.Bucket(b).Get(k)

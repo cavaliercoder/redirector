@@ -37,6 +37,7 @@ func NewRuntime() (*Runtime, error) {
 		return nil, err
 	}
 	logger.Printf("Using Bolt database: %v", cfg.DatabasePath)
+	logger.Printf("Total mappings: %v", db.Count())
 
 	return &Runtime{
 		Config:       cfg,
