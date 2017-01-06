@@ -1,4 +1,8 @@
 *.db
 *.json
+*.rpm
 *.sh
+*.tar.gz
+.vagrant/
 redirector
+Vagrantfile
