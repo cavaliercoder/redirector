@@ -39,6 +39,8 @@ func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if c.Runtime.Config.ExitOnError {
 					panic(err)
 				}
+
+				// TODO: log stack traces
 			}
 
 			c.Runtime.Logger.Printf("Error: %v", err)

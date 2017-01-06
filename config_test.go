@@ -11,5 +11,9 @@ func TestDefaultConfig(t *testing.T) {
 		if cfg.Path != "" {
 			t.Fatalf("Expected default config, got %v", cfg.Path)
 		}
+
+		if cfg.KeyBuilder == nil {
+			t.Fatalf("KeyBuilder was not instanciated")
+		}
 	}
 }

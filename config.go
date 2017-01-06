@@ -65,19 +65,8 @@ func LoadConfig(path string) (*Config, error) {
 	}
 
 	cfg.Path = path
-	cfg.Initialized = true
-
-	// expand keybuilder
-	// TODO: add query param key builder
-	switch cfg.KeyBuilderName {
-	case "", "path":
-		cfg.KeyBuilder = RequestURIPathKeyBuilder()
-
-	case "uri":
-		cfg.KeyBuilder = RequestURIKeyBuilder()
-
-	default:
-		return nil, fmt.Errorf("Unknown key builder: %v", cfg.KeyBuilderName)
+	if err := cfg.initialize(); err != nil {
+		return nil, err
 	}
 
 	return cfg, nil
@@ -101,7 +90,30 @@ func GetConfig() (*Config, error) {
 				return nil, err
 			}
 		}
+
+		if !cfg.Initialized {
+			if err := cfg.initialize(); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return cfg, nil
+}
+
+func (c *Config) initialize() error {
+	// expand keybuilder
+	// TODO: add query param key builder
+	switch c.KeyBuilderName {
+	case "", "path":
+		c.KeyBuilder = RequestURIPathKeyBuilder()
+
+	case "uri":
+		c.KeyBuilder = RequestURIKeyBuilder()
+
+	default:
+		return fmt.Errorf("Unknown key builder: %v", c.KeyBuilderName)
+	}
+	c.Initialized = true
+	return nil
 }
