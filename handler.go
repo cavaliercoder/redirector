@@ -46,7 +46,13 @@ func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Runtime.Logger.Printf("Error: %v", err)
 
 			w.WriteHeader(status)
-			fmt.Fprintf(w, "%d %s\n", status, http.StatusText(status))
+
+			if body, err := BodyForStatus(status); err != nil {
+				fmt.Fprintf(w, "%d %s\n", status, http.StatusText(status))
+			} else {
+				fmt.Fprintf(w, body)
+			}
+
 		}
 
 		d := time.Since(start)

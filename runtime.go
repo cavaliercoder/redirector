@@ -28,6 +28,10 @@ func NewRuntime() (*Runtime, error) {
 	}
 	logger.Printf("Using Bolt database: %v", cfg.DatabasePath)
 
+	if err := InitTemplates(); err != nil {
+		return nil, err
+	}
+
 	return &Runtime{
 		Config:   cfg,
 		Logger:   logger,

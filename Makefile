@@ -16,7 +16,8 @@ SOURCES = \
 	management_client.go \
 	mapping.go \
 	redirect.go \
-	runtime.go
+	runtime.go \
+	template.go
 
 EXTRA_DIST = \
 	Makefile \

@@ -5,17 +5,6 @@ import (
 	"net/http"
 )
 
-const (
-	// TODO: Update title as per actual response code
-	REDIRECT_BODY = `<html>
-<head><title>301 Moved Permanently</title></head>
-<body bgcolor="white">
-<center><h1>301 Moved Permanently</h1></center>
-<hr><center>` + PACKAGE_NAME + `/` + PACKAGE_VERSION + `</center>
-</body>
-</html>`
-)
-
 // getMappingOrDefault returns the requested mapping or the mapping for the
 // default key or MappingNotFoundError if neither are found.
 func getMappingOrDefault(rt *Runtime, key string) (*Mapping, error) {
@@ -50,15 +39,21 @@ func RedirectHandler(rt *Runtime) http.Handler {
 			panic(err)
 		}
 
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Header().Set("Location", m.Destination)
+		status := http.StatusTemporaryRedirect
 		if m.Permanent {
-			w.WriteHeader(http.StatusPermanentRedirect)
-		} else {
-			w.WriteHeader(http.StatusTemporaryRedirect)
+			status = http.StatusPermanentRedirect
 		}
 
-		fmt.Fprintf(w, REDIRECT_BODY)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Location", m.Destination)
+		w.WriteHeader(status)
+
+		body, err := BodyForStatus(status)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Fprintf(w, body)
 	}))
 }
 

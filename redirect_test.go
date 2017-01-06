@@ -35,6 +35,7 @@ func testRedirectServer(fn func(*Runtime, *httptest.Server)) {
 			Database: db,
 			Logger:   log.New(ioutil.Discard, "", 0),
 		}
+		InitTemplates()
 
 		ts := httptest.NewServer(RedirectHandler(rt))
 		defer ts.Close()
