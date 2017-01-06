@@ -56,7 +56,7 @@ func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		d := time.Since(start)
-		c.Runtime.Logger.Printf("%v %v %v", r.Method, r.URL, d)
+		c.Runtime.AccessLogger.Printf("%v %v %v", r.Method, r.URL, d)
 	}()
 
 	c.Handler.ServeHTTP(w, r)

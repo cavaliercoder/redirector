@@ -15,6 +15,7 @@ var cfg *Config = &Config{
 	ListenAddr:     ":8080",
 	MgmtAddr:       "127.0.0.1:9321",
 	LogFile:        "-", // stdout
+	AccessLogFile:  "-", //stdout
 	KeyBuilderName: "path",
 }
 
@@ -40,6 +41,9 @@ type Config struct {
 
 	// Logfile to write to
 	LogFile string `json:"logFile"`
+
+	// LogFile to write HTTP transactions to
+	AccessLogFile string `json:"accessLogFile"`
 
 	// The name of the key build to use when mapping URLs
 	KeyBuilderName string `json:"keyBuilder"`
@@ -117,6 +121,10 @@ func (c *Config) initialize() error {
 		} else {
 			return fmt.Errorf("Unknown key builder: %v", c.KeyBuilderName)
 		}
+	}
+
+	if err := InitTemplates(); err != nil {
+		return err
 	}
 
 	c.Initialized = true

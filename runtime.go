@@ -6,9 +6,10 @@ import (
 
 // Runtime contains globals for common runtime utilities.
 type Runtime struct {
-	Config   *Config
-	Logger   *log.Logger
-	Database Database
+	Config       *Config
+	Logger       *log.Logger
+	AccessLogger *log.Logger
+	Database     Database
 }
 
 func NewRuntime() (*Runtime, error) {
@@ -17,9 +18,18 @@ func NewRuntime() (*Runtime, error) {
 		return nil, err
 	}
 
-	logger, err := NewLogger(cfg)
+	logger, err := NewLogger(cfg.LogFile)
 	if err != nil {
 		return nil, err
+	}
+	logger.Printf("Server started")
+
+	accessLogger := logger
+	if cfg.AccessLogFile != cfg.LogFile {
+		accessLogger, err = NewLogger(cfg.AccessLogFile)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	db, err := OpenBoltDatabase(cfg)
@@ -28,14 +38,11 @@ func NewRuntime() (*Runtime, error) {
 	}
 	logger.Printf("Using Bolt database: %v", cfg.DatabasePath)
 
-	if err := InitTemplates(); err != nil {
-		return nil, err
-	}
-
 	return &Runtime{
-		Config:   cfg,
-		Logger:   logger,
-		Database: db,
+		Config:       cfg,
+		Logger:       logger,
+		AccessLogger: accessLogger,
+		Database:     db,
 	}, nil
 }
 

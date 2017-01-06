@@ -32,8 +32,9 @@ func testRedirectServer(fn func(*Runtime, *httptest.Server)) {
 				ExitOnError: true,
 				KeyBuilder:  RequestURIPathKeyBuilder(),
 			},
-			Database: db,
-			Logger:   log.New(ioutil.Discard, "", 0),
+			Database:     db,
+			Logger:       log.New(ioutil.Discard, "", 0),
+			AccessLogger: log.New(ioutil.Discard, "", 0),
 		}
 		InitTemplates()
 

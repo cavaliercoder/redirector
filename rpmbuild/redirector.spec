@@ -50,7 +50,8 @@ cat > %{buildroot}%{_sysconfdir}/%{name}/%{name}.json <<EOL
 {
 	"listenAddr": ":8080",
 	"mgmtAddr": "127.0.0.1:9321",
-	"logFile": "%{_localstatedir}/log/%{name}/%{name}.log", 
+	"logFile": "%{_localstatedir}/log/%{name}/%{name}.log",
+	"accessLogFile": "%{_localstatedir}/log/%{name}/access.log",
 	"databasePath": "%{_sharedstatedir}/%{name}/%{name}.db",
 	"keyBuilder": "path"
 }
