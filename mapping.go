@@ -9,6 +9,7 @@ type Mapping struct {
 	Key         string `json:"key"`
 	Destination string `json:"dest"`
 	Permanent   bool   `json:"perm"`
+	Comment     string `json:"comment"`
 }
 
 func (m *Mapping) String() string {

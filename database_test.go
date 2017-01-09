@@ -5,9 +5,9 @@ import (
 )
 
 var testMappings = []Mapping{
-	{"default", "/okay", false},
-	{"/permanent", "/okay", true},
-	{"/temporary", "/okay", false},
+	{"default", "/okay", false, "Should only apply to missing keys"},
+	{"/permanent", "/okay", true, "Should return HTTP 308"},
+	{"/temporary", "/okay", false, "Should return HTTP 307"},
 }
 
 func testDB(t *testing.T, db Database) {
@@ -29,6 +29,10 @@ func testDB(t *testing.T, db Database) {
 
 			if v.Permanent != m.Permanent {
 				t.Errorf("Bad mapping permanence: '%v', expected '%v'", v.Permanent, m.Permanent)
+			}
+
+			if v.Comment != m.Comment {
+				t.Errorf("Bad mapping comment: '%v', expected '%v'", v.Comment, m.Comment)
 			}
 		}
 	}

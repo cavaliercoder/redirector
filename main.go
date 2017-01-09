@@ -45,6 +45,10 @@ func main() {
 					Name:  "permanent,p",
 					Usage: "Redirect is permanent (301)",
 				},
+				cli.StringFlag{
+					Name:  "comment,c",
+					Usage: "Description of this redirection",
+				},
 			},
 		},
 		{
@@ -91,9 +95,9 @@ func ListMappingsAction(c *cli.Context) error {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 1, 3, ' ', 0)
-	fmt.Fprintln(w, "KEY\tDESTINATION\tPERMANENT")
+	fmt.Fprintln(w, "KEY\tDESTINATION\tPERMANENT\tCOMMENT")
 	for _, m := range mappings {
-		fmt.Fprintf(w, "%v\t%v\t%v\n", m.Key, m.Destination, m.Permanent)
+		fmt.Fprintf(w, "%v\t%v\t%v\t%v\n", m.Key, m.Destination, m.Permanent, m.Comment)
 	}
 	w.Flush()
 
@@ -105,6 +109,7 @@ func AddMappingAction(c *cli.Context) error {
 		Key:         c.String("key"),
 		Destination: c.String("dest"),
 		Permanent:   c.Bool("permenant"),
+		Comment:     c.String("comment"),
 	}
 
 	if m.Key == "" {
