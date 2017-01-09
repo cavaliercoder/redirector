@@ -173,6 +173,10 @@ func ImportMappingsAction(c *cli.Context) error {
 	mappings := make([]Mapping, 0)
 	dec := json.NewDecoder(r)
 	if err := dec.Decode(&mappings); err != nil {
+		if serr, ok := err.(*json.SyntaxError); ok {
+			return fmt.Errorf("Syntax error: %v at %v", err, serr.Offset)
+		}
+
 		return err
 	}
 
