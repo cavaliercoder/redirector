@@ -8,8 +8,8 @@ import (
 type Mapping struct {
 	Key         string `json:"key"`
 	Destination string `json:"dest"`
-	Permanent   bool   `json:"perm"`
-	Comment     string `json:"comment"`
+	Permanent   bool   `json:"perm,omitempty"`
+	Comment     string `json:"comment,omitempty"`
 }
 
 func (m *Mapping) String() string {

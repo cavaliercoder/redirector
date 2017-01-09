@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"gopkg.in/urfave/cli.v1"
 	"os"
@@ -27,6 +28,17 @@ func main() {
 			Name:   "ls",
 			Usage:  "list all mappings",
 			Action: ListMappingsAction,
+		},
+		{
+			Name:   "dump",
+			Usage:  "dump all mappings to a JSON document",
+			Action: DumpMappingsAction,
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "pretty,p",
+					Usage: "print JSON with human-readable whitespace",
+				},
+			},
 		},
 		{
 			Name:   "add",
@@ -100,6 +112,30 @@ func ListMappingsAction(c *cli.Context) error {
 		fmt.Fprintf(w, "%v\t%v\t%v\t%v\n", m.Key, m.Destination, m.Permanent, m.Comment)
 	}
 	w.Flush()
+
+	return nil
+}
+
+func DumpMappingsAction(c *cli.Context) error {
+	cfg, err := GetConfig()
+	if err != nil {
+		return err
+	}
+
+	client := NewManagementClient(cfg)
+	mappings, err := client.GetMappings()
+	if err != nil {
+		return err
+	}
+
+	enc := json.NewEncoder(os.Stdout)
+	if c.Bool("pretty") {
+		enc.SetIndent("", "  ")
+	}
+
+	if err := enc.Encode(mappings); err != nil {
+		return err
+	}
 
 	return nil
 }
