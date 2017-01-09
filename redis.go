@@ -10,6 +10,11 @@ type RedisDatabase struct {
 	client redis.Conn
 }
 
+// returns a redis key for the given mapping
+func redisMappingKey(key string) string {
+	return fmt.Sprintf("mapping::%v", key)
+}
+
 func OpenRedisDatabase(cfg *Config) (Database, error) {
 	client, err := redis.Dial("tcp", cfg.DatabasePath)
 	if err != nil {
@@ -46,6 +51,7 @@ func (db *RedisDatabase) Stats() interface{} {
 }
 
 func (db *RedisDatabase) Count() int64 {
+	// TODO: exclude non-mapping keys
 	str, err := redis.String(db.client.Do("INFO", "keyspace"))
 	if err != nil {
 		panic(err)
@@ -64,16 +70,18 @@ func (db *RedisDatabase) AddMapping(m *Mapping) error {
 		return err
 	}
 
-	if res, err := redis.String(db.client.Do("SET", m.Key, b)); err != nil {
+	key := redisMappingKey(m.Key)
+	if res, err := redis.String(db.client.Do("SET", key, b)); err != nil {
 		return err
 	} else if res != "OK" {
-		return fmt.Errorf("Failed to set key %v: %v", m.Key, res)
+		return fmt.Errorf("Redis failed to set key %v: %v", key, res)
 	}
 
 	return nil
 }
 
 func (db *RedisDatabase) GetMapping(key string) (*Mapping, error) {
+	key = redisMappingKey(key)
 	b, err := redis.Bytes(db.client.Do("GET", key))
 	if err == redis.ErrNil {
 		return nil, MappingNotFoundError
@@ -121,6 +129,7 @@ func (db *RedisDatabase) GetMappings() ([]*Mapping, error) {
 }
 
 func (db *RedisDatabase) DeleteMapping(key string) error {
+	key = redisMappingKey(key)
 	i, err := redis.Int(db.client.Do("DEL", key))
 	if err != nil {
 		return err
