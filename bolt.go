@@ -125,15 +125,18 @@ func (db *BoltDatabase) DeleteMapping(key string) error {
 }
 
 func (db *BoltDatabase) DeleteMappings() (int64, error) {
-	count := db.Count()
+	var count int64 = 0
 	err := db.bdb.Update(func(tx *bolt.Tx) error {
-		if err := tx.Bucket(MAPPINGS_BUCKET).DeleteBucket(MAPPINGS_BUCKET); err != nil {
-			return err
-		}
-
-		if _, err := tx.CreateBucket(MAPPINGS_BUCKET); err != nil {
-			return err
-		}
+		// deleting and recreating a bucket in the same transaction does not
+		// seem to be an effective way to clear a bucket
+		b := tx.Bucket(MAPPINGS_BUCKET)
+		return b.ForEach(func(k, v []byte) error {
+			if err := b.Delete(k); err != nil {
+				return err
+			}
+			count++
+			return nil
+		})
 
 		return nil
 	})
