@@ -60,7 +60,5 @@ func BodyForStatus(code int) (string, error) {
 		return body, nil
 	}
 
-	panic(code)
-
 	return "", BodyNotFoundError
 }
