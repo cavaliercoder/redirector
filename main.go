@@ -188,12 +188,7 @@ func ImportMappingsAction(c *cli.Context) error {
 		return fmt.Errorf("No mappings found in import document")
 	}
 
-	comment := c.String("comment")
 	for i, m := range mappings {
-		if comment != "" {
-			m.Comment = comment
-		}
-
 		if err := m.Validate(); err != nil {
 			return fmt.Errorf("Validation error in mapping %v (key: %v): %v\n%v", i+1, m.Key, err)
 		}
@@ -214,7 +209,12 @@ func ImportMappingsAction(c *cli.Context) error {
 
 	// TODO: 404s will occur here until mappings are reimported
 
+	comment := c.String("comment")
 	for i, m := range mappings {
+		if comment != "" {
+			m.Comment = comment
+		}
+
 		if err := client.AddMapping(&m); err != nil {
 			return fmt.Errorf("Error adding mapping %v: %v", i+1, err)
 		}
