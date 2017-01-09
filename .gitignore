@@ -1,4 +1,5 @@
 *.db
+*.gz
 *.json
 *.log
 *.rpm

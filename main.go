@@ -53,6 +53,10 @@ func main() {
 					Name:  "clear,x",
 					Usage: "Clear all existing mappings before import",
 				},
+				cli.StringFlag{
+					Name:  "comment,c",
+					Usage: "Overwrite the comment for all imported mappings",
+				},
 			},
 		},
 		{
@@ -184,7 +188,12 @@ func ImportMappingsAction(c *cli.Context) error {
 		return fmt.Errorf("No mappings found in import document")
 	}
 
+	comment := c.String("comment")
 	for i, m := range mappings {
+		if comment != "" {
+			m.Comment = comment
+		}
+
 		if err := m.Validate(); err != nil {
 			return fmt.Errorf("Validation error in mapping %v (key: %v): %v\n%v", i+1, m.Key, err)
 		}

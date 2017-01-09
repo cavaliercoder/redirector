@@ -77,6 +77,8 @@ KillMode=process
 WantedBy=multi-user.target
 EOL
 
+# TODO: add logrotated config
+
 %pre
 /usr/bin/getent group %{name} >/dev/null || /usr/sbin/groupadd -r %{name}
 /usr/bin/getent passwd %{name} >/dev/null || /usr/sbin/useradd \
