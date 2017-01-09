@@ -84,15 +84,17 @@ func (c *mgmtHandler) deleteMappingHandler(w http.ResponseWriter, r *http.Reques
 	m := Mapping{}
 	fmt.Sscanf(r.URL.Path, "/mappings/%s", &m.Key)
 	if m.Key == "" {
-		panic(NewHTTPError(http.StatusMethodNotAllowed, nil))
-	}
+		if _, err := c.Runtime.Database.DeleteMappings(); err != nil {
+			panic(err)
+		}
+	} else {
+		if _, err := c.Runtime.Database.GetMapping(m.Key); err != nil {
+			panic(err)
+		}
 
-	if _, err := c.Runtime.Database.GetMapping(m.Key); err != nil {
-		panic(err)
-	}
-
-	if err := c.Runtime.Database.DeleteMapping(m.Key); err != nil {
-		panic(err)
+		if err := c.Runtime.Database.DeleteMapping(m.Key); err != nil {
+			panic(err)
+		}
 	}
 
 	w.WriteHeader(http.StatusNoContent)

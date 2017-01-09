@@ -45,13 +45,13 @@ func (db *RedisDatabase) Stats() interface{} {
 	return stats
 }
 
-func (db *RedisDatabase) Count() int {
+func (db *RedisDatabase) Count() int64 {
 	str, err := redis.String(db.client.Do("INFO", "keyspace"))
 	if err != nil {
 		panic(err)
 	}
 
-	i := -1
+	var i int64 = 0
 	o := strings.Index(str, ":keys=") + 6
 	fmt.Sscanf(str[o:], "%d", &i)
 
@@ -131,4 +131,14 @@ func (db *RedisDatabase) DeleteMapping(key string) error {
 	}
 
 	return nil
+}
+
+func (db *RedisDatabase) DeleteMappings() (int64, error) {
+	count := db.Count()
+	_, err := db.client.Do("FLUSHDB")
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }

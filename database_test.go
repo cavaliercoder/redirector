@@ -11,6 +11,11 @@ var testMappings = []Mapping{
 }
 
 func testDB(t *testing.T, db Database) {
+	// clear existing
+	if _, err := db.DeleteMappings(); err != nil {
+		panic(err)
+	}
+
 	// add mappings
 	for _, m := range testMappings {
 		if err := db.AddMapping(&m); err != nil {

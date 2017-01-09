@@ -26,7 +26,7 @@ func OpenBoltDatabase(cfg *Config) (Database, error) {
 	}
 
 	bdb.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte("mappings"))
+		_, err := tx.CreateBucketIfNotExists(MAPPINGS_BUCKET)
 		if err != nil {
 			return err
 		}
@@ -47,11 +47,11 @@ func (db *BoltDatabase) Stats() interface{} {
 	return db.bdb.Stats()
 }
 
-func (db *BoltDatabase) Count() int {
-	count := 0
+func (db *BoltDatabase) Count() int64 {
+	var count int64 = 0
 	db.bdb.View(func(tx *bolt.Tx) error {
 		stats := tx.Bucket(MAPPINGS_BUCKET).Stats()
-		count = stats.KeyN
+		count = int64(stats.KeyN)
 		return nil
 	})
 
@@ -122,4 +122,25 @@ func (db *BoltDatabase) GetMappings() ([]*Mapping, error) {
 
 func (db *BoltDatabase) DeleteMapping(key string) error {
 	return db.delete(MAPPINGS_BUCKET, []byte(key))
+}
+
+func (db *BoltDatabase) DeleteMappings() (int64, error) {
+	count := db.Count()
+	err := db.bdb.Update(func(tx *bolt.Tx) error {
+		if err := tx.Bucket(MAPPINGS_BUCKET).DeleteBucket(MAPPINGS_BUCKET); err != nil {
+			return err
+		}
+
+		if _, err := tx.CreateBucket(MAPPINGS_BUCKET); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return 0, nil
+	}
+
+	return count, nil
 }

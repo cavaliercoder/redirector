@@ -30,13 +30,28 @@ func main() {
 			Action: ListMappingsAction,
 		},
 		{
-			Name:   "dump",
-			Usage:  "dump all mappings to a JSON document",
-			Action: DumpMappingsAction,
+			Name:   "export",
+			Usage:  "export all mappings to a JSON document",
+			Action: ExportMappingsAction,
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "pretty,p",
 					Usage: "print JSON with human-readable whitespace",
+				},
+			},
+		},
+		{
+			Name:   "import",
+			Usage:  "import mappings from a JSON document",
+			Action: ImportMappingsAction,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "file,f",
+					Usage: "JSON file path",
+				},
+				cli.BoolFlag{
+					Name:  "clear,x",
+					Usage: "Clear all existing mappings before import",
 				},
 			},
 		},
@@ -71,6 +86,10 @@ func main() {
 				cli.StringFlag{
 					Name:  "key,k",
 					Usage: "key that identifies this redirect",
+				},
+				cli.BoolFlag{
+					Name:  "all,a",
+					Usage: "permanently delete all mappings",
 				},
 			},
 		},
@@ -116,7 +135,7 @@ func ListMappingsAction(c *cli.Context) error {
 	return nil
 }
 
-func DumpMappingsAction(c *cli.Context) error {
+func ExportMappingsAction(c *cli.Context) error {
 	cfg, err := GetConfig()
 	if err != nil {
 		return err
@@ -137,6 +156,59 @@ func DumpMappingsAction(c *cli.Context) error {
 		return err
 	}
 
+	return nil
+}
+
+func ImportMappingsAction(c *cli.Context) error {
+	r := os.Stdin
+	if name := c.String("file"); name != "" {
+		f, err := os.Open(name)
+		if err != nil {
+			return err
+		}
+
+		r = f
+	}
+
+	mappings := make([]Mapping, 0)
+	dec := json.NewDecoder(r)
+	if err := dec.Decode(&mappings); err != nil {
+		return err
+	}
+
+	if len(mappings) == 0 {
+		return fmt.Errorf("No mappings found in import document")
+	}
+
+	for i, m := range mappings {
+		if err := m.Validate(); err != nil {
+			return fmt.Errorf("Validation error in mapping %v (key: %v): %v\n%v", i+1, m.Key, err)
+		}
+	}
+
+	cfg, err := GetConfig()
+	if err != nil {
+		return err
+	}
+
+	count := 0
+	client := NewManagementClient(cfg)
+	if c.Bool("clear") {
+		if err := client.RemoveAllMappings(); err != nil {
+			return fmt.Errorf("Error removing existing mappings: %v", err)
+		}
+	}
+
+	// TODO: 404s will occur here until mappings are reimported
+
+	for i, m := range mappings {
+		if err := client.AddMapping(&m); err != nil {
+			return fmt.Errorf("Error adding mapping %v: %v", i+1, err)
+		}
+		count++
+	}
+
+	fmt.Printf("Imported %v mappings\n", count)
 	return nil
 }
 
@@ -171,24 +243,35 @@ func AddMappingAction(c *cli.Context) error {
 }
 
 func RemoveMappingAction(c *cli.Context) error {
-	m := &Mapping{
-		Key: c.String("key"),
-	}
-
-	if m.Key == "" {
-		return fmt.Errorf("Key not specified")
-	}
-
 	cfg, err := GetConfig()
 	if err != nil {
 		return err
 	}
 
 	client := NewManagementClient(cfg)
-	if err := client.RemoveMapping(m); err != nil {
-		return err
+
+	if c.Bool("all") {
+		if err := client.RemoveAllMappings(); err != nil {
+			return err
+		}
+
+		fmt.Printf("Removed all mappings\n")
+	} else {
+		// remove one
+		m := &Mapping{
+			Key: c.String("key"),
+		}
+
+		if m.Key == "" {
+			return fmt.Errorf("Key not specified")
+		}
+
+		if err := client.RemoveMapping(m); err != nil {
+			return err
+		}
+
+		fmt.Printf("Removed %v\n", m.Key)
 	}
 
-	fmt.Printf("Removed %v\n", m.Key)
 	return nil
 }

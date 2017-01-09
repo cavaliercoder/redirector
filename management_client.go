@@ -80,3 +80,22 @@ func (c *ManagementClient) RemoveMapping(m *Mapping) error {
 
 	return nil
 }
+func (c *ManagementClient) RemoveAllMappings() error {
+	addr := fmt.Sprintf("http://%v/mappings/", c.Config.MgmtAddr)
+
+	req, err := http.NewRequest("DELETE", addr, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("%d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
+	}
+
+	return nil
+}

@@ -15,5 +15,6 @@ type Database interface {
 	GetMapping(key string) (*Mapping, error)
 	GetMappings() ([]*Mapping, error)
 	DeleteMapping(key string) error
-	Count() int
+	DeleteMappings() (int64, error)
+	Count() int64
 }
