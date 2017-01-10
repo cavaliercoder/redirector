@@ -31,6 +31,7 @@ func (db *RedisDatabase) Close() error {
 }
 
 func (db *RedisDatabase) Stats() (DatabaseStats, error) {
+	// see: https://redis.io/commands/INFO
 	s, err := redis.String(db.client.Do("INFO", "all"))
 	if err != nil {
 		return DatabaseStats{}, nil

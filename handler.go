@@ -24,6 +24,7 @@ func WrapHandler(rt *Runtime, h http.Handler) http.Handler {
 
 func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
+	w.Header().Set("Server", PACKAGE_NAME+"/"+PACKAGE_VERSION)
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 
 	defer func() {
