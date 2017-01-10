@@ -25,6 +25,15 @@ func (c *mgmtHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.URL.Path == "/config/" {
+		if r.Method != "GET" {
+			panic(NewHTTPError(http.StatusMethodNotAllowed, nil))
+		}
+
+		JSON(w, r, c.Runtime.Config)
+		return
+	}
+
 	if strings.HasPrefix(r.URL.Path, "/mappings/") {
 		switch r.Method {
 		case "POST":
