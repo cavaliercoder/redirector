@@ -50,8 +50,14 @@ func NewRuntime() (*Runtime, error) {
 		return nil, err
 	}
 
+	dbstats, err := db.Stats()
+	if err != nil {
+		return nil, err
+	}
+
 	logger.Printf("Connected to database %v://%v", cfg.DatabaseDriver, cfg.DatabasePath)
-	logger.Printf("Total mappings: %v", db.Count())
+	logger.Printf("  Total mappings: %v\n", dbstats.TotalMappings)
+	logger.Printf("  Disk usage: %v bytes\n", dbstats.DiskUsage)
 
 	return &Runtime{
 		Config:       cfg,

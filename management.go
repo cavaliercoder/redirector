@@ -5,7 +5,18 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
+
+var (
+	startTime time.Time
+)
+
+type RuntimeStats struct {
+	Status   string        `json:"status"`
+	Uptime   int64         `json:"uptime"`
+	Database DatabaseStats `json:"database"`
+}
 
 type mgmtHandler struct {
 	Runtime *Runtime
@@ -57,7 +68,17 @@ func (c *mgmtHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *mgmtHandler) getStatsHandler(w http.ResponseWriter, r *http.Request) {
-	stats := c.Runtime.Database.Stats()
+	dbstats, err := c.Runtime.Database.Stats()
+	if err != nil {
+		panic(err)
+	}
+
+	stats := &RuntimeStats{
+		Status:   "OK",
+		Uptime:   int64(time.Since(startTime).Seconds()),
+		Database: dbstats,
+	}
+
 	JSON(w, r, stats)
 }
 
@@ -110,6 +131,7 @@ func (c *mgmtHandler) deleteMappingHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func serveManager(rt *Runtime) error {
+	startTime = time.Now()
 	s := &http.Server{
 		Addr:    rt.Config.MgmtAddr,
 		Handler: ManagementHandler(rt),

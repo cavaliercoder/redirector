@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/boltdb/bolt"
+	"os"
 	"time"
 )
 
@@ -12,6 +13,7 @@ var (
 // BoltDatabase implements Database to enable storage of URL mappings in a
 // memory-mapped BoltDB data store.
 type BoltDatabase struct {
+	cfg *Config
 	bdb *bolt.DB
 }
 
@@ -35,6 +37,7 @@ func OpenBoltDatabase(cfg *Config) (Database, error) {
 	})
 
 	return &BoltDatabase{
+		cfg: cfg,
 		bdb: bdb,
 	}, nil
 }
@@ -43,19 +46,24 @@ func (db *BoltDatabase) Close() error {
 	return db.bdb.Close()
 }
 
-func (db *BoltDatabase) Stats() interface{} {
-	return db.bdb.Stats()
-}
+func (db *BoltDatabase) Stats() (DatabaseStats, error) {
+	stats := DatabaseStats{}
 
-func (db *BoltDatabase) Count() int64 {
-	var count int64 = 0
-	db.bdb.View(func(tx *bolt.Tx) error {
-		stats := tx.Bucket(MAPPINGS_BUCKET).Stats()
-		count = int64(stats.KeyN)
+	if fi, err := os.Stat(db.cfg.DatabasePath); err != nil {
+		return DatabaseStats{}, err
+	} else {
+		stats.DiskUsage = fi.Size()
+	}
+
+	if err := db.bdb.View(func(tx *bolt.Tx) error {
+		bdbstats := tx.Bucket(MAPPINGS_BUCKET).Stats()
+		stats.TotalMappings = int64(bdbstats.KeyN)
 		return nil
-	})
+	}); err != nil {
+		return DatabaseStats{}, err
+	}
 
-	return count
+	return stats, nil
 }
 
 func (db *BoltDatabase) get(b, k []byte, v interface{}) error {

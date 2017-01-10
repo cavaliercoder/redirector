@@ -30,38 +30,35 @@ func (db *RedisDatabase) Close() error {
 	return db.client.Close()
 }
 
-func (db *RedisDatabase) Stats() interface{} {
+func (db *RedisDatabase) Stats() (DatabaseStats, error) {
 	s, err := redis.String(db.client.Do("INFO", "all"))
 	if err != nil {
-		return nil
+		return DatabaseStats{}, nil
 	}
 
-	stats := make(map[string]string, 0)
+	rstats := make(map[string]string, 0)
 	lines := strings.Split(s, "\r\n")
 	for _, line := range lines {
 		if !strings.HasPrefix(line, "#") {
 			v := strings.SplitN(line, ":", 2)
 			if len(v) == 2 {
-				stats[v[0]] = v[1]
+				rstats[v[0]] = v[1]
 			}
 		}
 	}
 
-	return stats
-}
+	stats := DatabaseStats{}
 
-func (db *RedisDatabase) Count() int64 {
-	// TODO: exclude non-mapping keys
-	str, err := redis.String(db.client.Do("INFO", "keyspace"))
-	if err != nil {
-		panic(err)
+	if str, ok := rstats["db0"]; ok {
+		o := strings.Index(str, ":keys=") + 6
+		fmt.Sscanf(str[o:], "%d", &stats.TotalMappings)
 	}
 
-	var i int64 = 0
-	o := strings.Index(str, ":keys=") + 6
-	fmt.Sscanf(str[o:], "%d", &i)
+	if str, ok := rstats["used_memory"]; ok {
+		fmt.Sscanf(str, "%d", &stats.DiskUsage)
+	}
 
-	return i
+	return stats, nil
 }
 
 func (db *RedisDatabase) AddMapping(m *Mapping) error {
@@ -143,11 +140,14 @@ func (db *RedisDatabase) DeleteMapping(key string) error {
 }
 
 func (db *RedisDatabase) DeleteMappings() (int64, error) {
-	count := db.Count()
-	_, err := db.client.Do("FLUSHDB")
+	stats, err := db.Stats()
 	if err != nil {
 		return 0, err
 	}
 
-	return count, nil
+	if _, err := db.client.Do("FLUSHDB"); err != nil {
+		return 0, err
+	}
+
+	return stats.TotalMappings, nil
 }
