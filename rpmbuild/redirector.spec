@@ -6,7 +6,7 @@
 %global _dwz_low_mem_die_limit 0
 
 Name:           redirector
-Version:        1.0.0
+Version:        1.1.0
 Release:        1%{?dist}
 Summary:        Simple HTTP redirect server
 
@@ -112,3 +112,10 @@ rm -rf %{buildroot}
 %attr(0755, root, root)%{_bindir}/%{name}
 
 %changelog
+* Thu Jan 12 2017 Ryan Armstrong <ryan@cavaliercoder.com> - 1.1.0-1
+- Added destination templating
+- Added server response header
+
+* Wed Jan 11 2017 Ryan Armstrong <ryan@cavaliercoder.com> - 1.0.0-1
+- Initial RPM release
+
