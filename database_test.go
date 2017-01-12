@@ -5,9 +5,10 @@ import (
 )
 
 var testMappings = []Mapping{
-	{"default", "/okay", false, "Should only apply to missing keys"},
-	{"/permanent", "/okay", true, "Should return HTTP 308"},
-	{"/temporary", "/okay", false, "Should return HTTP 307"},
+	{"default", "/okay", false, "Should only apply to missing keys", false},
+	{"/permanent", "/okay", true, "Should return HTTP 308", false},
+	{"/temporary", "/okay", false, "Should return HTTP 307", false},
+	{"/template", "/?key={{ .Key }}", false, "Should expand template", true},
 }
 
 func testDB(t *testing.T, db Database) {

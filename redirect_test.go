@@ -96,6 +96,21 @@ func TestTemporaryKey(t *testing.T) {
 	})
 }
 
+func TestTemplatedKey(t *testing.T) {
+	testRedirectServer(func(rt *Runtime, ts *httptest.Server) {
+		dest := "/?key=/template"
+		res, err := testHttpClient().Get(ts.URL + "/template")
+		if err != nil {
+			panic(err)
+		}
+
+		loc := res.Header.Get("Location")
+		if loc != dest {
+			t.Fatalf("Expected mapping to '%v', got '%v'", dest, loc)
+		}
+	})
+}
+
 func TestDefaultKey(t *testing.T) {
 	testRedirectServer(func(rt *Runtime, ts *httptest.Server) {
 		dest := "/okay"
@@ -127,8 +142,14 @@ func TestDefaultKey(t *testing.T) {
 			}
 
 			loc = res.Header.Get("Location")
-			if loc != m.Destination {
-				t.Fatalf("Bad mapping destination '%v', expected '%v'", loc, m.Destination)
+			if m.IsTemplate {
+				if loc == dest {
+					t.Fatalf("Expected non-default destination, got default for key %v", m.Key)
+				}
+			} else {
+				if loc != m.Destination {
+					t.Fatalf("Bad mapping destination '%v', expected '%v'", loc, m.Destination)
+				}
 			}
 		}
 	})

@@ -16,6 +16,9 @@ func getMappingOrDefault(rt *Runtime, key string) (*Mapping, error) {
 	for _, k := range keys {
 		m, err := rt.Database.GetMapping(k)
 		if err == nil {
+			if err := m.Validate(); err != nil {
+				return nil, err
+			}
 			return m, nil
 		}
 
@@ -44,8 +47,17 @@ func RedirectHandler(rt *Runtime) http.Handler {
 			status = http.StatusPermanentRedirect
 		}
 
+		dest := m.Destination
+		if m.IsTemplate {
+			if d, err := m.ComputeDestination(key, r); err != nil {
+				panic(err)
+			} else {
+				dest = d
+			}
+		}
+
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Header().Set("Location", m.Destination)
+		w.Header().Set("Location", dest)
 		w.WriteHeader(status)
 
 		body, err := BodyForStatus(status)

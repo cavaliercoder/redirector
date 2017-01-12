@@ -1,7 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"net/http"
+	"strings"
+	"sync"
+	"text/template"
 )
 
 // A Mapping maps a request key to a destination URL.
@@ -10,11 +15,18 @@ type Mapping struct {
 	Destination string `json:"dest"`
 	Permanent   bool   `json:"perm,omitempty"`
 	Comment     string `json:"comment,omitempty"`
+	IsTemplate  bool   `json:"-"`
 }
 
 var (
-	KeyMissingError         = fmt.Errorf("No key defined")
-	DestinationMissingError = fmt.Errorf("No destination defined")
+	KeyMissingError             = fmt.Errorf("No key defined")
+	DestinationMissingError     = fmt.Errorf("No destination defined")
+	DestinationNotTemplateError = fmt.Errorf("Mapping destination is not a template")
+)
+
+var (
+	mappingTemplates      = make(map[string]*template.Template)
+	mappingTemplatesMutex = &sync.Mutex{}
 )
 
 func (m *Mapping) String() string {
@@ -35,5 +47,54 @@ func (m *Mapping) Validate() error {
 		return DestinationMissingError
 	}
 
+	if strings.Contains(m.Destination, "{{") {
+		m.IsTemplate = true
+	}
+
 	return nil
+}
+
+// ComputeDestination expands any templated fields in the mapping destination
+// URL.
+//
+// Request key may differ from actual mapping key when using 'catch-all'
+// mappings such as the default mapping.
+func (m *Mapping) ComputeDestination(key string, r *http.Request) (string, error) {
+	if !m.IsTemplate {
+		return "", DestinationNotTemplateError
+	}
+
+	// get template
+	tmpl, err := func(m *Mapping) (*template.Template, error) {
+		mappingTemplatesMutex.Lock()
+		if tmpl, ok := mappingTemplates[m.Key]; ok {
+			mappingTemplatesMutex.Unlock()
+			return tmpl, nil
+		}
+		mappingTemplatesMutex.Unlock()
+
+		if tmpl, err := template.New(m.Key).Parse(m.Destination); err != nil {
+			return nil, err
+		} else {
+			mappingTemplatesMutex.Lock()
+			mappingTemplates[m.Key] = tmpl
+			mappingTemplatesMutex.Unlock()
+			return tmpl, nil
+		}
+	}(m)
+	if err != nil {
+		return "", err
+	}
+
+	data := map[string]interface{}{
+		"Key":     key,
+		"Request": r,
+	}
+
+	b := &bytes.Buffer{}
+	if err := tmpl.Execute(b, data); err != nil {
+		return "", err
+	}
+
+	return string(b.Bytes()), nil
 }
