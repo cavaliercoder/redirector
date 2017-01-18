@@ -16,7 +16,7 @@ var cfg *Config = &Config{
 	ListenAddr:     ":8080",
 	MgmtAddr:       "127.0.0.1:9321",
 	LogFile:        "-", // stdout
-	AccessLogFile:  "-", //stdout
+	AccessLogFile:  "-", // stdout
 	KeyBuilderName: "path",
 }
 

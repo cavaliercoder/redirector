@@ -29,25 +29,17 @@ func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if err := recover(); err != nil {
-			status := http.StatusInternalServerError
-			if err == MappingNotFoundError {
-				status = http.StatusNotFound
-			} else if herr, ok := err.(*HTTPError); ok {
-				if herr.StatusCode > 0 {
-					status = herr.StatusCode
-				}
-			} else {
+			status := StatusCodeForError(err.(error))
+			if status >= 500 && status < 600 {
+				c.Runtime.Logger.Printf("Error: %v", err)
+				// TODO: log stack traces
+
 				if c.Runtime.Config.ExitOnError {
 					panic(err)
 				}
-
-				// TODO: log stack traces
 			}
 
-			c.Runtime.Logger.Printf("Error: %v", err)
-
 			w.WriteHeader(status)
-
 			if body, err := BodyForStatus(status); err != nil {
 				c.Runtime.Logger.Printf("Error getting body for status %v: %v", status, err)
 				fmt.Fprintf(w, "%d %s\n", status, http.StatusText(status))

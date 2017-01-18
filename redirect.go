@@ -8,7 +8,12 @@ import (
 // getMappingOrDefault returns the requested mapping or the mapping for the
 // default key or MappingNotFoundError if neither are found.
 func getMappingOrDefault(rt *Runtime, key string) (*Mapping, error) {
-	keys := []string{key}
+	keys := make([]string, 0, 2)
+
+	if key != "" {
+		keys = append(keys, key)
+	}
+
 	if rt.Config.DefaultKey != "" {
 		keys = append(keys, rt.Config.DefaultKey)
 	}
@@ -34,7 +39,9 @@ func RedirectHandler(rt *Runtime) http.Handler {
 	return WrapHandler(rt, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		key, err := rt.Config.KeyBuilder.Parse(r)
 		if err != nil {
-			panic(err)
+			if status := StatusCodeForError(err); status >= 500 {
+				panic(err)
+			}
 		}
 
 		m, err := getMappingOrDefault(rt, key)
