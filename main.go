@@ -174,7 +174,7 @@ func ImportMappingsAction(c *cli.Context) error {
 		r = f
 	}
 
-	mappings := make([]Mapping, 0)
+	mappings := make([]*Mapping, 0)
 	dec := json.NewDecoder(r)
 	if err := dec.Decode(&mappings); err != nil {
 		if serr, ok := err.(*json.SyntaxError); ok {
@@ -188,6 +188,14 @@ func ImportMappingsAction(c *cli.Context) error {
 		return fmt.Errorf("No mappings found in import document")
 	}
 
+	if comment := c.String("comment"); comment != "" {
+		for _, m := range mappings {
+			if m.Comment == "" {
+				m.Comment = comment
+			}
+		}
+	}
+
 	for i, m := range mappings {
 		if err := m.Validate(); err != nil {
 			return fmt.Errorf("Validation error in mapping %v (key: %v): %v\n%v", i+1, m.Key, err)
@@ -199,29 +207,19 @@ func ImportMappingsAction(c *cli.Context) error {
 		return err
 	}
 
-	count := 0
 	client := NewManagementClient(cfg)
 	if c.Bool("clear") {
 		if err := client.RemoveAllMappings(); err != nil {
 			return fmt.Errorf("Error removing existing mappings: %v", err)
 		}
+		// TODO: 404s will occur here until mappings are reimported
 	}
 
-	// TODO: 404s will occur here until mappings are reimported
-
-	comment := c.String("comment")
-	for i, m := range mappings {
-		if comment != "" {
-			m.Comment = comment
-		}
-
-		if err := client.AddMapping(&m); err != nil {
-			return fmt.Errorf("Error adding mapping %v: %v", i+1, err)
-		}
-		count++
+	if err := client.AddMappings(mappings); err != nil {
+		return fmt.Errorf("Error adding mappings: %v", err)
 	}
 
-	fmt.Printf("Imported %v mappings\n", count)
+	fmt.Printf("Imported %v mappings\n", len(mappings))
 	return nil
 }
 

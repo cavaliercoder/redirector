@@ -96,17 +96,23 @@ func (c *mgmtHandler) postMappingHandler(w http.ResponseWriter, r *http.Request)
 		panic(NewHTTPError(http.StatusBadRequest, nil))
 	}
 
-	m := &Mapping{}
+	mappings := make([]*Mapping, 0)
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(m); err != nil {
+	if err := decoder.Decode(&mappings); err != nil {
 		panic(err)
 	}
 
-	if err := c.Runtime.Database.AddMapping(m); err != nil {
-		panic(err)
+	for i, m := range mappings {
+		if err := c.Runtime.Database.AddMapping(m); err != nil {
+			panic(fmt.Errorf("Error adding mapping '%v at index [%v]': %v", m.Key, i, err))
+		}
 	}
 
-	w.Header().Set("Location", fmt.Sprintf("/mappings/%v", m.Key))
+	c.Runtime.Logger.Printf("Added %v mappings", len(mappings))
+	if len(mappings) == 1 {
+		w.Header().Set("Location", fmt.Sprintf("/mappings/%v", mappings[0].Key))
+	}
+
 	w.WriteHeader(http.StatusCreated)
 }
 

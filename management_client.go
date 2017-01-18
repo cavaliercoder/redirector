@@ -37,6 +37,32 @@ func (c *ManagementClient) GetMappings() ([]Mapping, error) {
 func (c *ManagementClient) AddMapping(m *Mapping) error {
 	addr := fmt.Sprintf("http://%v/mappings/", c.Config.MgmtAddr)
 
+	b, err := json.Marshal([]Mapping{*m})
+	if err != nil {
+		return err
+	}
+
+	r := bytes.NewReader(b)
+	resp, err := http.Post(addr, "application/json", r)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	_, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf("%d %s\n", resp.StatusCode, http.StatusText(resp.StatusCode))
+	}
+
+	return nil
+}
+func (c *ManagementClient) AddMappings(m []*Mapping) error {
+	addr := fmt.Sprintf("http://%v/mappings/", c.Config.MgmtAddr)
+
 	b, err := json.Marshal(m)
 	if err != nil {
 		return err
