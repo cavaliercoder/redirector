@@ -6,7 +6,7 @@
 %global _dwz_low_mem_die_limit 0
 
 Name:           redirector
-Version:        1.1.0
+Version:        1.1.1
 Release:        1%{?dist}
 Summary:        Simple HTTP redirect server
 
@@ -93,11 +93,17 @@ EOL
 /usr/bin/systemctl daemon-reload || :
 
 %preun
-/usr/bin/systemctl stop %{name} || :
+if [ "$1" = "0" ]; then
+	/usr/bin/systemctl stop %{name} || :
+fi
 
 %postun
-/usr/sbin/userdel %{name}
-/usr/bin/systemctl daemon-reload || :
+if [ "$1" = "0" ]; then
+	/usr/sbin/userdel --force %{name} || :
+	/usr/bin/systemctl daemon-reload || :
+else
+	/usr/bin/systemctl restart redirector
+fi
 
 %clean
 rm -rf %{buildroot}
@@ -112,6 +118,10 @@ rm -rf %{buildroot}
 %attr(0755, root, root)%{_bindir}/%{name}
 
 %changelog
+* Wed Jan 18 2017 Ryan Armstrong <ryan@cavaliercoder.com> - 1.1.1-1
+- Improved import performance
+- Improved error handling for key builders
+
 * Thu Jan 12 2017 Ryan Armstrong <ryan@cavaliercoder.com> - 1.1.0-1
 - Added destination templating
 - Added server response header

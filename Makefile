@@ -1,5 +1,5 @@
 PACKAGE = redirector
-PACKAGE_VERSION = 1.1.0
+PACKAGE_VERSION = 1.1.1
 PACKAGE_PATH = github.com/cavaliercoder/$(PACKAGE)
 
 SOURCES = \
