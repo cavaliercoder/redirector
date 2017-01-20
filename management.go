@@ -14,6 +14,7 @@ var (
 
 type RuntimeStats struct {
 	Status   string        `json:"status"`
+	Version  string        `json:"version"`
 	Uptime   int64         `json:"uptime"`
 	Database DatabaseStats `json:"database"`
 }
@@ -75,6 +76,7 @@ func (c *mgmtHandler) getStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	stats := &RuntimeStats{
 		Status:   "OK",
+		Version:  PACKAGE_VERSION,
 		Uptime:   int64(time.Since(startTime).Seconds()),
 		Database: dbstats,
 	}
