@@ -6,7 +6,7 @@
 %global _dwz_low_mem_die_limit 0
 
 Name:           redirector
-Version:        1.1.1
+Version:        1.1.2
 Release:        1%{?dist}
 Summary:        Simple HTTP redirect server
 
@@ -118,6 +118,10 @@ rm -rf %{buildroot}
 %attr(0755, root, root)%{_bindir}/%{name}
 
 %changelog
+* Fri Jan 20 2017 Ryan Armstrong <ryan@cavaliercoder.com> - 1.1.2-1
+- Added more detail to access logging
+- Added version to server start log entry
+
 * Wed Jan 18 2017 Ryan Armstrong <ryan@cavaliercoder.com> - 1.1.1-1
 - Improved import performance
 - Improved error handling for key builders

@@ -10,7 +10,7 @@ import (
 
 const (
 	PACKAGE_NAME    = "redirector"
-	PACKAGE_VERSION = "1.1.1"
+	PACKAGE_VERSION = "1.1.2"
 )
 
 func main() {

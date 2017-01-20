@@ -42,7 +42,7 @@ Content-Length: 181
 <head><title>301 Moved Permanently</title></head>
 <body bgcolor="white">
 <center><h1>301 Moved Permanently</h1></center>
-<hr><center>redirector/1.1.1</center>
+<hr><center>redirector/1.1.2</center>
 </body>
 </html>
 
