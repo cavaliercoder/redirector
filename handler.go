@@ -22,11 +22,21 @@ func WrapHandler(rt *Runtime, h http.Handler) http.Handler {
 	}
 }
 
+func loggable(v interface{}) string {
+	if v == nil {
+		return "-"
+	}
+
+	if s, ok := v.(string); ok && s == "" {
+		return "-"
+	}
+
+	return fmt.Sprintf("%v", v)
+}
+
 func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	w.Header().Set("Server", PACKAGE_NAME+"/"+PACKAGE_VERSION)
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-
+	ww := NewResponseWriter(w)
 	defer func() {
 		if err := recover(); err != nil {
 			status := StatusCodeForError(err.(error))
@@ -39,20 +49,33 @@ func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			w.WriteHeader(status)
+			ww.WriteHeader(status)
 			if body, err := BodyForStatus(status); err != nil {
 				c.Runtime.Logger.Printf("Error getting body for status %v: %v", status, err)
-				fmt.Fprintf(w, "%d %s\n", status, http.StatusText(status))
+				fmt.Fprintf(ww, "%d %s\n", status, http.StatusText(status))
 			} else {
-				fmt.Fprintf(w, body)
+				fmt.Fprintf(ww, body)
 			}
 		}
 
 		d := time.Since(start)
-		c.Runtime.AccessLogger.Printf("%v %v %v", r.Method, r.URL, d)
+		c.Runtime.AccessLogger.Printf(
+			"%s %s %s%s %s %d %d %s %s %d",
+			r.RemoteAddr,
+			r.Method,
+			r.URL.Path,
+			r.URL.RawQuery,
+			r.Proto,
+			ww.Status(),
+			ww.Size(),
+			loggable(r.Header.Get("Referer")),
+			loggable(ww.Header().Get("Location")),
+			d.Nanoseconds())
 	}()
 
-	c.Handler.ServeHTTP(w, r)
+	ww.Header().Set("Server", PACKAGE_NAME+"/"+PACKAGE_VERSION)
+	ww.Header().Set("X-Content-Type-Options", "nosniff")
+	c.Handler.ServeHTTP(ww, r)
 }
 
 // JSON encodes the given interface{} to JSON and writes the output to the given

@@ -17,6 +17,7 @@ SOURCES = \
 	mapping.go \
 	redirect.go \
 	redis.go \
+	response_writer.go \
 	runtime.go \
 	template.go
 
