@@ -25,7 +25,7 @@ func NewRuntime() (*Runtime, error) {
 	if err != nil {
 		return nil, err
 	}
-	logger.Printf("Server started")
+	logger.Printf("Server started (v%v)", PACKAGE_VERSION)
 
 	accessLogger := logger
 	if cfg.AccessLogFile != cfg.LogFile {
