@@ -36,7 +36,7 @@ func TestDestinationTemplate(t *testing.T) {
 		panic(err)
 	}
 
-	dest, err := m.ComputeDestination(m.Key, nil)
+	dest, err := m.ComputeDestination(ViewBag{"Key": m.Key})
 	if err != nil {
 		panic(err)
 	}

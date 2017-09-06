@@ -18,6 +18,7 @@ var cfg *Config = &Config{
 	LogFile:        "-", // stdout
 	AccessLogFile:  "-", // stdout
 	KeyBuilderName: "path",
+	ViewBag:        NewViewBag(),
 }
 
 // Config contains runtime configuration for the redirector service.
@@ -35,6 +36,7 @@ type Config struct {
 	KeyBuilder        KeyBuilder `json:"-"`          // An instance of a KeyBuilder
 	DefaultKey        string     `json:"defaultKey"` // fallback for all 404s
 	DestinationPrefix string     `json:"destinationPrefix"`
+	ViewBag           ViewBag    `json:"viewBag"`
 }
 
 // LoadConfig reads configuration from the given file path

@@ -9,6 +9,7 @@ var testMappings = []Mapping{
 	{"/permanent", "/okay", true, "Should return HTTP 308", false},
 	{"/temporary", "/okay", false, "Should return HTTP 307", false},
 	{"/template", "/?key={{ .Key }}", false, "Should expand template", true},
+	{"/viewbag", "/?Foo={{ .Foo }}", false, "Should expand View Bag", true},
 }
 
 func testDB(t *testing.T, db Database) {

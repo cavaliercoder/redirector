@@ -56,7 +56,13 @@ func RedirectHandler(rt *Runtime) http.Handler {
 
 		dest := m.Destination
 		if m.IsTemplate {
-			if d, err := m.ComputeDestination(key, r); err != nil {
+			vb := NewViewBag()
+			for k, v := range rt.Config.ViewBag {
+				vb.Add(k, v)
+			}
+			vb.Add("Key", key)
+			vb.Add("Request", r)
+			if d, err := m.ComputeDestination(vb); err != nil {
 				panic(err)
 			} else {
 				dest = d

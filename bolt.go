@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/boltdb/bolt"
 	"os"
 	"time"
+
+	"github.com/boltdb/bolt"
 )
 
 var (
@@ -133,7 +134,7 @@ func (db *BoltDatabase) DeleteMapping(key string) error {
 }
 
 func (db *BoltDatabase) DeleteMappings() (int64, error) {
-	var count int64 = 0
+	var count int64
 	err := db.bdb.Update(func(tx *bolt.Tx) error {
 		// deleting and recreating a bucket in the same transaction does not
 		// seem to be an effective way to clear a bucket
@@ -145,8 +146,6 @@ func (db *BoltDatabase) DeleteMappings() (int64, error) {
 			count++
 			return nil
 		})
-
-		return nil
 	})
 
 	if err != nil {

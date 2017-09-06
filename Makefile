@@ -19,7 +19,8 @@ SOURCES = \
 	redis.go \
 	response_writer.go \
 	runtime.go \
-	template.go
+	template.go \
+	viewbag.go
 
 EXTRA_DIST = \
 	Makefile \

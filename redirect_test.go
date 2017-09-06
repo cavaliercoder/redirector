@@ -31,6 +31,7 @@ func testRedirectServer(fn func(*Runtime, *httptest.Server)) {
 			Config: &Config{
 				ExitOnError: true,
 				KeyBuilder:  RequestURIPathKeyBuilder(),
+				ViewBag:     NewViewBag(),
 			},
 			Database:     db,
 			Logger:       log.New(ioutil.Discard, "", 0),
@@ -107,6 +108,21 @@ func TestTemplatedKey(t *testing.T) {
 		loc := res.Header.Get("Location")
 		if loc != dest {
 			t.Fatalf("Expected mapping to '%v', got '%v'", dest, loc)
+		}
+	})
+}
+
+func TestViewBag(t *testing.T) {
+	testRedirectServer(func(rt *Runtime, ts *httptest.Server) {
+		rt.Config.ViewBag.Add("Foo", "Bar")
+		expect := "/?Foo=Bar"
+		res, err := testHttpClient().Get(ts.URL + "/viewbag")
+		if err != nil {
+			panic(err)
+		}
+		loc := res.Header.Get("Location")
+		if loc != expect {
+			t.Fatalf("Expected mapping to '%v', got '%v'", expect, loc)
 		}
 	})
 }

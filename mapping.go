@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"net/http"
 	"strings"
 	"sync"
 	"text/template"
@@ -59,7 +58,7 @@ func (m *Mapping) Validate() error {
 //
 // Request key may differ from actual mapping key when using 'catch-all'
 // mappings such as the default mapping.
-func (m *Mapping) ComputeDestination(key string, r *http.Request) (string, error) {
+func (m *Mapping) ComputeDestination(vb ViewBag) (string, error) {
 	if !m.IsTemplate {
 		return "", DestinationNotTemplateError
 	}
@@ -86,13 +85,8 @@ func (m *Mapping) ComputeDestination(key string, r *http.Request) (string, error
 		return "", err
 	}
 
-	data := map[string]interface{}{
-		"Key":     key,
-		"Request": r,
-	}
-
 	b := &bytes.Buffer{}
-	if err := tmpl.Execute(b, data); err != nil {
+	if err := tmpl.Execute(b, vb); err != nil {
 		return "", err
 	}
 
