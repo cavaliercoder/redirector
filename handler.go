@@ -26,11 +26,9 @@ func loggable(v interface{}) string {
 	if v == nil {
 		return "-"
 	}
-
 	if s, ok := v.(string); ok && s == "" {
 		return "-"
 	}
-
 	return fmt.Sprintf("%v", v)
 }
 
@@ -60,11 +58,10 @@ func (c *defaultHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		d := time.Since(start)
 		c.Runtime.AccessLogger.Printf(
-			"%s %s %s%s %s %d %d %s %s %d",
+			"%s %s %s %s %d %d %s %s %d",
 			r.RemoteAddr,
 			r.Method,
-			r.URL.Path,
-			r.URL.RawQuery,
+			r.URL,
 			r.Proto,
 			ww.Status(),
 			ww.Size(),
