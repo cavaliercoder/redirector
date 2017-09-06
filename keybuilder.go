@@ -27,6 +27,22 @@ func (f KeyBuilderFunc) Parse(r *http.Request) (string, error) {
 // a mapping key.
 func RequestURIKeyBuilder() KeyBuilder {
 	return KeyBuilderFunc(func(r *http.Request) (string, error) {
+		if r.URL.Scheme == "" {
+			if scheme := r.Header.Get("X-Forwarded-Proto"); scheme != "" {
+				r.URL.Scheme = scheme
+			} else {
+				r.URL.Scheme = "http"
+			}
+		}
+		if r.URL.Host == "" {
+			if host := r.Header.Get("Host"); host != "" {
+				r.URL.Host = host
+			} else if host := r.Header.Get("X-Forwarded-Host"); host != "" {
+				r.URL.Host = host
+			} else {
+				r.URL.Host = "."
+			}
+		}
 		return r.URL.String(), nil
 	})
 }

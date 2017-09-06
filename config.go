@@ -110,6 +110,7 @@ func GetConfig() (*Config, error) {
 	return cfg, nil
 }
 
+// initialize instanciates the current runtime configuration.
 func (c *Config) initialize() error {
 	// expand keybuilder
 	switch c.KeyBuilderName {

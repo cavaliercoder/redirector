@@ -36,32 +36,31 @@ func TestPathKeyBuilder(t *testing.T) {
 }
 
 func TestURIKeyBuilder(t *testing.T) {
-	expect := "http://test/"
-	c := &Config{
-		KeyBuilderName: "uri",
-	}
+	expect := "http://test.local/some/path/?query=value&query2=value2"
+	kb := RequestURIKeyBuilder()
 
-	if err := c.initialize(); err != nil {
-		panic(err)
-	}
+	t.Run("Direct", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", expect, nil)
+		key, err := kb.Parse(req)
+		if err != nil {
+			panic(err)
+		}
+		if key != expect {
+			t.Errorf("expected key: %v, got: %v", expect, key)
+		}
+	})
 
-	if c.KeyBuilder == nil {
-		t.Fatalf("KeyBuilder not instanciated")
-	}
-
-	r, err := http.NewRequest("GET", expect, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	key, err := c.KeyBuilder.Parse(r)
-	if err != nil {
-		panic(err)
-	}
-
-	if key != expect {
-		t.Fatalf("Expected key %v, got %v", expect, key)
-	}
+	t.Run("VHost", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/some/path/?query=value&query2=value2", nil)
+		req.Header.Set("host", "test.local")
+		key, err := kb.Parse(req)
+		if err != nil {
+			panic(err)
+		}
+		if key != expect {
+			t.Errorf("expected key: %v, got: %v", expect, key)
+		}
+	})
 }
 
 func TestParamKeyBuilderConfig(t *testing.T) {
