@@ -62,6 +62,9 @@ func RedirectHandler(rt *Runtime) http.Handler {
 				dest = d
 			}
 		}
+		if rt.Config.DestinationPrefix != "" {
+			dest = rt.Config.DestinationPrefix + dest
+		}
 
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Header().Set("Location", dest)

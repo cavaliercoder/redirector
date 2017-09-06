@@ -22,42 +22,19 @@ var cfg *Config = &Config{
 
 // Config contains runtime configuration for the redirector service.
 type Config struct {
-	// Path of the loaded configuration file
-	Path string `json:"-"`
-
-	// Indicates if configuration has already been loaded
-	Initialized bool `json:"-"`
-
-	// Bypass panic handler for testing
-	ExitOnError bool `json:"-"`
-
-	// Database driver
-	DatabaseDriver string `json:"database"`
-
-	// File path of the BoltDB database
-	DatabasePath string `json:"databasePath"`
-
-	// Interface and TCP port to bind to
-	ListenAddr string `json:"listenAddr"`
-
-	// Interface and TCP to bind the management service to
-	MgmtAddr string `json:"mgmtAddr"`
-
-	// Logfile to write to
-	LogFile string `json:"logFile"`
-
-	// LogFile to write HTTP transactions to
-	AccessLogFile string `json:"accessLogFile"`
-
-	// The name of the key build to use when mapping URLs
-	KeyBuilderName string `json:"keyBuilder"`
-
-	// An instance of a KeyBuilder to use when mapping URLs
-	KeyBuilder KeyBuilder `json:"-"`
-
-	// Use this key if the requested key does not exist (instead of returning
-	// 404)
-	DefaultKey string `json:"defaultKey"`
+	Path              string     `json:"-"` // Loaded configuration file
+	Initialized       bool       `json:"-"`
+	ExitOnError       bool       `json:"-"` // Bypass panic handler
+	DatabaseDriver    string     `json:"database"`
+	DatabasePath      string     `json:"databasePath"`
+	ListenAddr        string     `json:"listenAddr"`
+	MgmtAddr          string     `json:"mgmtAddr"`
+	LogFile           string     `json:"logFile"`
+	AccessLogFile     string     `json:"accessLogFile"`
+	KeyBuilderName    string     `json:"keyBuilder"` // The name of the KeyBuilder
+	KeyBuilder        KeyBuilder `json:"-"`          // An instance of a KeyBuilder
+	DefaultKey        string     `json:"defaultKey"` // fallback for all 404s
+	DestinationPrefix string     `json:"destinationPrefix"`
 }
 
 // LoadConfig reads configuration from the given file path

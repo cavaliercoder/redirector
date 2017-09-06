@@ -111,6 +111,22 @@ func TestTemplatedKey(t *testing.T) {
 	})
 }
 
+func TestDestinationPrefix(t *testing.T) {
+	testRedirectServer(func(rt *Runtime, ts *httptest.Server) {
+		rt.Config.DestinationPrefix = "http://test.local"
+		dest := "http://test.local/okay"
+		res, err := testHttpClient().Get(ts.URL + "/temporary")
+		if err != nil {
+			panic(err)
+		}
+
+		loc := res.Header.Get("Location")
+		if loc != dest {
+			t.Fatalf("Expected mapping to '%v', got '%v'", dest, loc)
+		}
+	})
+}
+
 func TestDefaultKey(t *testing.T) {
 	testRedirectServer(func(rt *Runtime, ts *httptest.Server) {
 		dest := "/okay"
