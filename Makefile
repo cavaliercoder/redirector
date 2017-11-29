@@ -29,6 +29,8 @@ EXTRA_DIST = \
 # see https://fedoraproject.org/wiki/PackagingDrafts/Go#Debuginfo
 LDFLAGS = "-B 0x$(shell head -c20 /dev/urandom|od -An -tx1|tr -d ' \n')"
 
+RPM_TOPDIR := $(HOME)/rpmbuild
+
 all: $(PACKAGE)
 
 $(PACKAGE): $(SOURCES)
@@ -63,13 +65,15 @@ distclean:
 	rm -vf $(PACKAGE)-$(PACKAGE_VERSION).tar.gz
 
 rpm: dist
-	cp -v rpmbuild/$(PACKAGE).spec ~/rpmbuild/SPECS/$(PACKAGE).spec
-	cp -v $(PACKAGE)-$(PACKAGE_VERSION).tar.gz ~/rpmbuild/SOURCES/$(PACKAGE)-$(PACKAGE_VERSION).tar.gz 
-	rpmbuild -ba ~/rpmbuild/SPECS/$(PACKAGE).spec
+	mkdir -v -p $(RPM_TOPDIR)/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+	cp -v rpmbuild/$(PACKAGE).spec $(RPM_TOPDIR)/SPECS/$(PACKAGE).spec
+	cp -v $(PACKAGE)-$(PACKAGE_VERSION).tar.gz $(RPM_TOPDIR)/SOURCES/$(PACKAGE)-$(PACKAGE_VERSION).tar.gz 
+	rpmbuild -ba $(RPM_TOPDIR)/SPECS/$(PACKAGE).spec
+	cp -v $(RPM_TOPDIR)/RPMS/x86_64/redirector-* .
 
 rpmclean:
-	rm -vf ~/rpmbuild/SPECS/$(PACKAGE).spec
-	rm -vf ~/rpmbuild/SOURCES/$(PACKAGE)-$(PACKAGE_VERSION).tar.gz
-	rm -vf ~/rpmbuild/RPMS/x86_64/redirector-*
+	rm -vf $(RPM_TOPDIR)/SPECS/$(PACKAGE).spec
+	rm -vf $(RPM_TOPDIR)/SOURCES/$(PACKAGE)-$(PACKAGE_VERSION).tar.gz
+	rm -vf $(RPM_TOPDIR)/RPMS/x86_64/redirector-*
 
 .PHONY: all check clean install get-deps dist rpm
